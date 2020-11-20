@@ -1,0 +1,1 @@
+g++ src/main.cpp -o out/main -pthread -lntl -lgmp -lm
