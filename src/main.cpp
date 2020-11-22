@@ -3,6 +3,8 @@
 #include <NTL/ZZ_pX.h>
 #include <NTL/ZZ_pE.h>
 
+#include <assert.h>
+
 using namespace std;
 using namespace NTL;
 
@@ -19,7 +21,7 @@ int main() {
 
     // instantiate GF(2^64, 4)
     ZZ_pE::init(P);
-    cout << P << "\n";
+    cout << "modulus: " << P << "\n";
 
     // TEST GENERATED IN SAGE:
     // Sage input:
@@ -46,10 +48,8 @@ int main() {
     ZZ_pE c_actual = a + b;
     ZZ_pE d_actual = a * b;
 
-    cout << a << "\n";
-    cout << b << "\n";
-    cout << c_expected << "\n";
-    cout << c_actual << "\n";
-    cout << d_expected << "\n";
-    cout << d_actual << "\n";
+    assert (c_expected == c_actual);
+    assert (d_expected == d_actual);
+
+    cout << "Passed all tests!\n";
 }
