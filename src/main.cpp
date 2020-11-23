@@ -2,8 +2,10 @@
 #include <NTL/ZZ_p.h>
 #include <NTL/ZZ_pX.h>
 #include <NTL/ZZ_pE.h>
-
+// #include <NTL/ZZ_limbs.h>
 #include <assert.h>
+#include "../include/joy_libert.h"
+
 
 using namespace std;
 using namespace NTL;
@@ -40,16 +42,26 @@ int main() {
     //     10729705841112452032*xbar^3 + 3765158679901327354*xbar^2 + 63313076748972445*xbar + 779890282421560090
     //     sage: a*bw
     //     15044056529184173484*xbar^3 + 17074595192421832188*xbar^2 + 8353559141346242245*xbar + 15699992808455822249
+    {
+        ZZ_pE a = conv<ZZ_pE>("[15182770761334213105 891207477139733263 550441077268878650 2694002667186393808]");
+        ZZ_pE b = conv<ZZ_pE>("[4043863594796898601 17618849673318790798 3214717602632448704 8035703173926058224]");
+        ZZ_pE c_expected = conv<ZZ_pE>("[779890282421560090 63313076748972445 3765158679901327354 10729705841112452032]");
+        ZZ_pE d_expected = conv<ZZ_pE>("[15699992808455822249 8353559141346242245 17074595192421832188 15044056529184173484]");
+        ZZ_pE c_actual = a + b;
+        ZZ_pE d_actual = a * b;
 
-    ZZ_pE a = conv<ZZ_pE>("[15182770761334213105 891207477139733263 550441077268878650 2694002667186393808]");
-    ZZ_pE b = conv<ZZ_pE>("[4043863594796898601 17618849673318790798 3214717602632448704 8035703173926058224]");
-    ZZ_pE c_expected = conv<ZZ_pE>("[779890282421560090 63313076748972445 3765158679901327354 10729705841112452032]");
-    ZZ_pE d_expected = conv<ZZ_pE>("[15699992808455822249 8353559141346242245 17074595192421832188 15044056529184173484]");
-    ZZ_pE c_actual = a + b;
-    ZZ_pE d_actual = a * b;
+        assert (c_expected == c_actual);
+        assert (d_expected == d_actual);
+    }
 
-    assert (c_expected == c_actual);
-    assert (d_expected == d_actual);
-
-    cout << "Passed all tests!\n";
+    ZZ p, n, y, D;
+    const int k = 64; // message bit length
+    const int l = 512; // modulus bit length
+    keygen(p, n, y, D, l, k);
+    cout << p << "\n";
+    cout << n << "\n";
+    cout << y << "\n";
+    cout << D << "\n";
+    
+    cout << "\nPassed all tests!\n";
 }
