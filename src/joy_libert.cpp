@@ -39,7 +39,9 @@ void keygen(ZZ& p_prime, ZZ& p, ZZ& n, ZZ& y, ZZ& D, const int l, const int k) {
     D = InvMod(D, p);
 }
 
-// Computes and assigned 2^k to pow2k;
+/*
+ * Computes and assigns 2^k to pow2k
+ */
 void precompute_pow2(ZZ& pow2k, const int k) {
     pow2k = ZZ(1) << k;
 }
@@ -52,7 +54,6 @@ void precompute_pow2(ZZ& pow2k, const int k) {
  *   - c: pointer to which output is assigned
  * Precondition:
  *   - n, y, k, pow2k are valid key and power of 2.
- *   - All pointers have been allocated
  */
 void encrypt(ZZ& c, const ZZ& m, const ZZ& n, const ZZ& g, const int k, const ZZ& pow2k) {
 	ZZ x;
@@ -72,7 +73,6 @@ void encrypt(ZZ& c, const ZZ& m, const ZZ& n, const ZZ& g, const int k, const ZZ
  *   - pow2k1: precomputed 2^(k-1)
  * Precondition:
  *   - p_prime, p, D_, k are all computed correctly
- *   - All pointers have been allocated
  */
 void decrypt(ZZ& m, const ZZ& c, const ZZ& p, const ZZ& p_prime, const ZZ& D_, const int k, const ZZ& pow2k1) {
     ZZ C = c % p;

@@ -70,16 +70,31 @@ int main() {
     precompute_pow2(pow2k, k);
     precompute_pow2(pow2k1, k-1);
 
-    ZZ m = RandomBits_ZZ(k);
-    cout << "m:           " << m << "\n";
-    ZZ c;
-    encrypt(c, m, n, y, k, pow2k);
-    ZZ m_recovered;
-    decrypt(m_recovered, c, p, p_prime, D, k, pow2k1);
+    ZZ m1 = RandomBits_ZZ(k-10); // so scalar multiplication doesn't exceed n
+    ZZ m2 = RandomBits_ZZ(k);
+    ZZ m1m2 = m1 + m2;
+    ZZ s = ZZ(14);
+    ZZ sm1 = s * m1;
+    cout << "m1:          " << m1 << "\n";
+    cout << "m2:          " << m2 << "\n";
+    ZZ c1, c2, c1c2, sc1;
+    encrypt(c1, m1, n, y, k, pow2k);
+    encrypt(c2, m2, n, y, k, pow2k);
+    add_encrypted(c1c2, c1, c2, n);
+    scalar_mult_encrypted(sc1, c1, s, n);
 
-    cout << "m_recovered: " << m_recovered << "\n";
+    ZZ m1_recovered, m2_recovered, m1m2_recovered, sm1_recovered;
+    decrypt(m1_recovered, c1, p, p_prime, D, k, pow2k1);
+    decrypt(m2_recovered, c2, p, p_prime, D, k, pow2k1);
+    decrypt(m1m2_recovered, c1c2, p, p_prime, D, k, pow2k1);
+    decrypt(sm1_recovered, sc1, p, p_prime, D, k, pow2k1);
 
-    assert((m == m_recovered) == 1);
+    // cout << "m_recovered: " << m_recovered << "\n";
+
+    assert((m1 == m1_recovered) == 1);
+    assert((m2 == m2_recovered) == 1);
+    assert((m1m2 == m1m2_recovered) == 1);
+    assert((sm1 == sm1_recovered) == 1);
 
     cout << "\nPassed all tests!\n";
 }
