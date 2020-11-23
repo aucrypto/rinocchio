@@ -54,14 +54,32 @@ int main() {
         assert (d_expected == d_actual);
     }
 
-    ZZ p, n, y, D;
+    ZZ p_prime, p, n, y, D;
     const int k = 64; // message bit length
     const int l = 512; // modulus bit length
-    keygen(p, n, y, D, l, k);
-    cout << p << "\n";
-    cout << n << "\n";
-    cout << y << "\n";
-    cout << D << "\n";
-    
+
+    keygen(p_prime, p, n, y, D, l, k);
+
+    cout << "p: " << p << "\n";
+    cout << "p_prime:" << p_prime << "\n";
+    cout << "n: " << n << "\n";
+    cout << "y: " << y << "\n";
+    cout << "D: " << D << "\n";
+
+    ZZ pow2k, pow2k1;
+    precompute_pow2(pow2k, k);
+    precompute_pow2(pow2k1, k-1);
+
+    ZZ m = RandomBits_ZZ(k);
+    cout << "m:           " << m << "\n";
+    ZZ c;
+    encrypt(c, m, n, y, k, pow2k);
+    ZZ m_recovered;
+    decrypt(m_recovered, c, p, p_prime, D, k, pow2k1);
+
+    cout << "m_recovered: " << m_recovered << "\n";
+
+    assert((m == m_recovered) == 1);
+
     cout << "\nPassed all tests!\n";
 }
