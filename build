@@ -1,1 +1,1 @@
-g++ -O2 src/* -o out/main -pthread -lntl -lgmp -lm
+g++ -O2 -std=c++11 src/* -o out/main -pthread -lntl -lgmp -lm
