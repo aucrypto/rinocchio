@@ -101,11 +101,11 @@ void decrypt(ZZ& m, const ZZ& c, const ZZ& p, const ZZ& p_prime, const ZZ& D_, c
     }
 }
 
-void add_encrypted(ZZ& c_result, ZZ& c1, ZZ& c2, const ZZ& n) {
-    c_result = c1 * c2;
-    c_result = c_result % n;
+void add_encrypted(ZZ& c_result, ZZ& c1, const ZZ& c2, const ZZ& n) {
+    ZZ tmp = c1 * c2;
+    c_result = tmp % n;
 }
 
-void scalar_mult_encrypted(ZZ& c_result, ZZ& c, ZZ& scalar, ZZ& n) {
+void scalar_mult_encrypted(ZZ& c_result, const ZZ& c, const ZZ& scalar, ZZ& n) {
     c_result = PowerMod(c, scalar, n);
 }

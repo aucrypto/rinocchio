@@ -96,5 +96,26 @@ int main() {
     assert((m1m2 == m1m2_recovered) == 1);
     assert((sm1 == sm1_recovered) == 1);
 
+    // TODO: fix this. 
+    // Somehow using add_encrypted inside a loop sets c_sum to zero
+    ZZ m, m_sum, c, c_sum, m_sum_decrypted;
+    c_sum = ZZ(0);
+    for (int i = 0; i < 30; i++) {
+        m = RandomBits_ZZ(k);
+        encrypt(c, m, n, y, k, pow2k);
+        m_sum = m_sum + m;
+        cout << "c              : " << c << "\n";
+        cout << "c_sum          : " << c_sum << "\n";
+        cout << "n              : " << n << "\n";
+        add_encrypted(c_sum, c_sum, c, n);
+        cout << "c_sum          : " << c_sum << "\n";
+    }
+    decrypt(m_sum_decrypted, c_sum, p, p_prime, D, k, pow2k1);
+    cout << "c_sum          : " << c_sum << "\n";
+    cout << "m_sum          : " << m_sum << "\n";
+    cout << "m_sum_decrypted: " << m_sum_decrypted << "\n";
+    assert((m_sum == m_sum_decrypted) == 1);
+
+
     cout << "\nPassed all tests!\n";
 }
