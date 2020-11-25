@@ -96,10 +96,10 @@ int main() {
     } while (g_1 == g_2);
 
     // Compute t(x) = (x - g_1) * (x - g_2)
-    Vec<ZZ_pEX> v, w, y;
-    v.SetLength(6);
-    w.SetLength(6);
-    y.SetLength(6);
+    Vec<ZZ_pEX> V, W, Y;
+    V.SetLength(6);
+    W.SetLength(6);
+    Y.SetLength(6);
     
     ZZ_pEX t;
     {
@@ -175,25 +175,25 @@ int main() {
         b_y_6.append(galloisOne);
 
 
-        interpolate(v(1), a, b_v_1);
-        interpolate(v(2), a, b_v_2);
-        interpolate(v(3), a, b_v_3);
-        interpolate(v(4), a, b_v_4);
-        interpolate(v(4), a, b_v_4);
-        interpolate(v(5), a, b_v_5);
-        interpolate(w(6), a, b_w_6);
-        interpolate(w(1), a, b_w_1);
-        interpolate(w(2), a, b_w_2);
-        interpolate(w(3), a, b_w_3);
-        interpolate(w(4), a, b_w_4);
-        interpolate(w(5), a, b_w_5);
-        interpolate(w(6), a, b_w_6);
-        interpolate(y(1), a, b_y_1);
-        interpolate(y(2), a, b_y_2);
-        interpolate(y(3), a, b_y_3);
-        interpolate(y(4), a, b_y_4);
-        interpolate(y(5), a, b_y_5);
-        interpolate(y(6), a, b_y_6);
+        interpolate(V(1), a, b_v_1);
+        interpolate(V(2), a, b_v_2);
+        interpolate(V(3), a, b_v_3);
+        interpolate(V(4), a, b_v_4);
+        interpolate(V(4), a, b_v_4);
+        interpolate(V(5), a, b_v_5);
+        interpolate(W(6), a, b_w_6);
+        interpolate(W(1), a, b_w_1);
+        interpolate(W(2), a, b_w_2);
+        interpolate(W(3), a, b_w_3);
+        interpolate(W(4), a, b_w_4);
+        interpolate(W(5), a, b_w_5);
+        interpolate(W(6), a, b_w_6);
+        interpolate(Y(1), a, b_y_1);
+        interpolate(Y(2), a, b_y_2);
+        interpolate(Y(3), a, b_y_3);
+        interpolate(Y(4), a, b_y_4);
+        interpolate(Y(5), a, b_y_5);
+        interpolate(Y(6), a, b_y_6);
     }
     
     //TODO: CRS
@@ -216,13 +216,47 @@ int main() {
         }
     }
 
-    //{E(r_v * v_k(S))}_k\in I_mid
     
-    //{E(r_w * w_k(S))}_k\in I_mid
-    //{E(r_y * y_k(S))}_k\in I_mid
-    //{E(alpha_v * r_v * v_k(S))}_k\in I_mid
-    //{E(alpha_w * r_w * w_k(S))}_k\in I_mid
-    //{E(alpha_y * r_y * y_k(S))}_k\in I_mid
-    //{E(beta ((r_v * v_k(S)) + (r_w * w_k(S)) + (r_y * y_k(S)))}_k\in I_mid
+    Vec<ZZ_pE> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
+    rvVofS.SetLength(6);
+    rwWofS.SetLength(6);
+    ryYofS.SetLength(6);
+    alpharvVofS.SetLength(6);
+    alpharwWofS.SetLength(6);
+    alpharyYofS.SetLength(6);
+    betaSums.SetLength(6);
+
+    for (int k = 0; k < V.length(); k++) {
+        //{E(r_v * v_k(S))}_k\in I_mid'
+        //{E(r_w * w_k(S))}_k\in I_mid
+        //{E(r_y * y_k(S))}_k\in I_mid
+        ZZ_pE rvVkofS, rwWkofS, ryYkofS;
+        eval(rvVkofS, V[k], s);
+        eval(rwWkofS, W[k], s);
+        eval(ryYkofS, Y[k], s);
+        mul(rvVkofS, rvVkofS, r_v);
+        mul(rwWkofS, rwWkofS, r_w);
+        mul(ryYkofS, ryYkofS, r_y);
+        rvVofS[k] = E(rvVkofS);
+        rwWofS[k] = E(rwWkofS);
+        ryYofS[k] = E(ryYkofS);
+            
+        //{E(alpha_v * r_v * v_k(S))}_k\in I_mid
+        //{E(alpha_w * r_w * w_k(S))}_k\in I_mid
+        //{E(alpha_y * r_y * y_k(S))}_k\in I_mid
+        ZZ_pE alpharvVkofS, alpharwWkofS, alpharyYkofS;
+        mul(alpharvVkofS, rvVkofS, alpha_v);
+        mul(alpharwWkofS, rwWkofS, alpha_w);
+        mul(alpharyYkofS, ryYkofS, alpha_y);
+        alpharvVofS[k] = E(alpharvVkofS);
+        alpharwWofS[k] = E(alpharwWkofS);
+        alpharyYofS[k] = E(alpharyYkofS);
+
+        //{E(beta ((r_v * v_k(S)) + (r_w * w_k(S)) + (r_y * y_k(S)))}_k\in I_mid
+        ZZ_pE kthBetaSum;
+        kthBetaSum = beta * (alpharvVkofS + alpharwWkofS + alpharyYkofS);
+        betaSums[k] = E(kthBetaSum);
+    }
+
     //pk
 }
