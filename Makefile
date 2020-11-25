@@ -8,5 +8,7 @@ jl:
 rinocchio:
 	g++ -O2 -std=c++11 src/rinocchio.cpp src/joy_libert.cpp -o out/rinocchio -pthread -lntl -lgmp -lm
 
-run:
-	./out/main
+run-setup:
+	./out/rinocchio
+
+test: rinocchio run-setup

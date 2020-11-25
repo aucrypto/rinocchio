@@ -7,23 +7,35 @@
 using namespace std;
 using namespace NTL;
 
-ZZ_pE randomNonZeroInExceptionalSet() {//TODO
-    // d random bit coefficients
-    // use IsZero()
-    return conv<ZZ_pE>("[1 1 1 1]"); // 1 + x + x^2 + x^3?
-}
-
 ZZ_pE randomInvertible() {
     while (true) {
         // random element in R:
         ZZ_pE res = random_ZZ_pE();
-        cout << rep(res) << "\n";
         //When d sufficiently large 
         //Check at least one coefficient is one
         for (int i = 0; i < ZZ_pE::degree(); i++) {
-            if (!divide(rep(rep(res)[i]), 2)) return res;
+            ZZ coeff = rep(rep(res)[i]);//todo remove tmp?
+            if (IsOdd(coeff)) return res;
+            
         }
     }
+}
+
+ZZ_pE randomNonZeroInExceptionalSet() {//TODO it's not pretty but it works for now :D
+    ZZ_pE preMod = randomInvertible(); //i.e. not zero when coefficients reduced mod 2
+    // bool reducedCoeffs[ZZ_pE::degree()]; //todo, why does this work? Doesn't it need to be a constant?
+    ZZ_pX reducedModTwo = ZZ_pX();
+    for (int i = 0; i < ZZ_pE::degree(); i++) {
+        // bool reducedCoeff = !divide(rep(rep(preMod)[i]), 2);
+        // reducedCoeffs[i] = reducedCoeff;
+        SetCoeff(reducedModTwo, i, rem(rep(rep(preMod)[i]), 2));
+    }
+    // ZZ_pE fromarray = conv<ZZ_pE>(reducedCoeffs);
+    ZZ_pE fromPX = to_ZZ_pE(reducedModTwo);
+    return fromPX;
+    // d random bit coefficients
+    // use IsZero()
+    // return conv<ZZ_pE>("[1 1 1 1]"); // 1 + x + x^2 + x^3?
 }
 
 int main() {
