@@ -47,24 +47,27 @@ ZZ_pE randomNonZeroInExceptionalSet() {
     }
 }
 
-int main() {
-    ZZ modulus = ZZ(1) << 64;
-    ZZ_p::init(modulus);
-    
-    // P = x^4 + x + 1
-    ZZ_pX P = ZZ_pX();
-    ZZ_p one = ZZ_p(1);
-    SetCoeff(P, 0, one);
-    SetCoeff(P, 1, one);
-    SetCoeff(P, 4, one);
+struct QRP {
+    ZZ_pEX t; //target polynomial
+    Vec<ZZ_pEX> V;
+    Vec<ZZ_pEX> W;
+    Vec<ZZ_pEX> Y;
+};
 
-    // instantiate GF(2^64, 4)
-    ZZ_pE::init(P);
-    cout << "modulus: " << P << "\n";
+struct CRS {
+    Vec<ZZ_pE> powersOfS, powersOfSMultAlpha, rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums; 
+    bool publicKey;
+};
 
+struct secretState {
+    ZZ_pE s, r_v, r_w, r_y, alpha, alpha_v, alpha_w, alpha_y, beta;
+    bool secretKey;
+};
+
+secretState setup() {
     //Find non-zero s in exceptional set (i.e. in A^*):
-    ZZ_pE s = randomNonZeroInExceptionalSet();
-    cout << rep(s) << "\n" ;
+    ZZ_pE s;
+    s = randomNonZeroInExceptionalSet();
     cout << s << "\n" ;
     //Find random r_v, r_w in R^*, i.e. d random coefficients where at least one is odd
     ZZ_pE r_v, r_w, r_y;
@@ -83,11 +86,24 @@ int main() {
         beta = random_ZZ_pE();
     } while (IsZero(beta));
 
+    secretState ss;
+    ss.s = s;
+    ss.r_v = r_v;
+    ss.r_w = r_w;
+    ss.r_y = r_y;
+    ss.alpha = alpha;
+    ss.alpha_v = alpha_v;
+    ss.alpha_w = alpha_w;
+    ss.alpha_y = alpha_y;
+    ss.beta = beta;
     //TODO: keypair, when joye-libert is working
     
+    ss.secretKey = false;
     
-    //QRP:
+    return ss;
+}
 
+QRP getQRP() {
     //Pick distinct elements of exceptional set for each gate:
     ZZ_pE g_1, g_2;
     g_1 = randomInExceptionalSet();
@@ -100,8 +116,8 @@ int main() {
     V.SetLength(6);
     W.SetLength(6);
     Y.SetLength(6);
-    
     ZZ_pEX t;
+    
     {
         ZZ_pEX x;
         SetX(x);
@@ -114,7 +130,9 @@ int main() {
         cout << "t(g_2)" << eval(t, g_2) << "\n";    
         cout << "t(g_2+g_1)" << eval(t, g_2+g_1) << "\n";    
 
-        ZZ_pE galloisOne = conv<ZZ_pE>(1);
+        // ZZ_pE galloisOne = conv<ZZ_pE>(1);
+        ZZ_pE galloisOne;
+        set(galloisOne);
 
         Vec<ZZ_pE> a;
         a.append(g_1);
@@ -173,21 +191,23 @@ int main() {
         Vec<ZZ_pE> b_y_6;
         b_y_6.append(ZZ_pE::zero());
         b_y_6.append(galloisOne);
-
+        cout << ZZ_pE::modulus() << "\n";
 
         interpolate(V(1), a, b_v_1);
+        cout << "sarg\n";
         interpolate(V(2), a, b_v_2);
         interpolate(V(3), a, b_v_3);
         interpolate(V(4), a, b_v_4);
-        interpolate(V(4), a, b_v_4);
         interpolate(V(5), a, b_v_5);
-        interpolate(W(6), a, b_w_6);
+        interpolate(V(6), a, b_v_6);
+
         interpolate(W(1), a, b_w_1);
         interpolate(W(2), a, b_w_2);
         interpolate(W(3), a, b_w_3);
         interpolate(W(4), a, b_w_4);
         interpolate(W(5), a, b_w_5);
         interpolate(W(6), a, b_w_6);
+
         interpolate(Y(1), a, b_y_1);
         interpolate(Y(2), a, b_y_2);
         interpolate(Y(3), a, b_y_3);
@@ -195,12 +215,23 @@ int main() {
         interpolate(Y(5), a, b_y_5);
         interpolate(Y(6), a, b_y_6);
     }
+
+    QRP qrp;
+    qrp.t  = t;
+    qrp.V = V;
+    qrp.W = W;
+    qrp.Y = Y;
+    return qrp;
+}
+
+CRS getCRS(QRP prog, secretState ss) {
     
-    //TODO: CRS
+
+    
     //{E(S^i)}_i=0^d
     //{E(alpha * S^i)}_i=0^d
     Vec<ZZ_pE> powersOfS;
-    Vec<ZZ_pE> powersOfSMultAlpa;
+    Vec<ZZ_pE> powersOfSMultAlpha;
     {
         ZZ_pE acc;
         set(acc);
@@ -209,10 +240,10 @@ int main() {
             powersOfS.append(ithPower);
 
             ZZ_pE ithPowerMultAlpha;
-            mul(ithPowerMultAlpha, alpha, ithPower);
-            powersOfSMultAlpa.append(ithPowerMultAlpha);
+            mul(ithPowerMultAlpha, ss.alpha, ithPower);
+            powersOfSMultAlpha.append(ithPowerMultAlpha);
             
-            mul(acc, acc, s);
+            mul(acc, acc, ss.s);
         }
     }
 
@@ -226,17 +257,17 @@ int main() {
     alpharyYofS.SetLength(6);
     betaSums.SetLength(6);
 
-    for (int k = 0; k < V.length(); k++) {
+    for (int k = 0; k < prog.V.length(); k++) {
         //{E(r_v * v_k(S))}_k\in I_mid'
         //{E(r_w * w_k(S))}_k\in I_mid
         //{E(r_y * y_k(S))}_k\in I_mid
         ZZ_pE rvVkofS, rwWkofS, ryYkofS;
-        eval(rvVkofS, V[k], s);
-        eval(rwWkofS, W[k], s);
-        eval(ryYkofS, Y[k], s);
-        mul(rvVkofS, rvVkofS, r_v);
-        mul(rwWkofS, rwWkofS, r_w);
-        mul(ryYkofS, ryYkofS, r_y);
+        eval(rvVkofS, prog.V[k], ss.s);
+        eval(rwWkofS, prog.W[k], ss.s);
+        eval(ryYkofS, prog.Y[k], ss.s);
+        mul(rvVkofS, rvVkofS, ss.r_v);
+        mul(rwWkofS, rwWkofS, ss.r_w);
+        mul(ryYkofS, ryYkofS, ss.r_y);
         rvVofS[k] = E(rvVkofS);
         rwWofS[k] = E(rwWkofS);
         ryYofS[k] = E(ryYkofS);
@@ -245,18 +276,42 @@ int main() {
         //{E(alpha_w * r_w * w_k(S))}_k\in I_mid
         //{E(alpha_y * r_y * y_k(S))}_k\in I_mid
         ZZ_pE alpharvVkofS, alpharwWkofS, alpharyYkofS;
-        mul(alpharvVkofS, rvVkofS, alpha_v);
-        mul(alpharwWkofS, rwWkofS, alpha_w);
-        mul(alpharyYkofS, ryYkofS, alpha_y);
+        mul(alpharvVkofS, rvVkofS, ss.alpha_v);
+        mul(alpharwWkofS, rwWkofS, ss.alpha_w);
+        mul(alpharyYkofS, ryYkofS, ss.alpha_y);
         alpharvVofS[k] = E(alpharvVkofS);
         alpharwWofS[k] = E(alpharwWkofS);
         alpharyYofS[k] = E(alpharyYkofS);
 
         //{E(beta ((r_v * v_k(S)) + (r_w * w_k(S)) + (r_y * y_k(S)))}_k\in I_mid
         ZZ_pE kthBetaSum;
-        kthBetaSum = beta * (alpharvVkofS + alpharwWkofS + alpharyYkofS);
+        kthBetaSum = ss.beta * (alpharvVkofS + alpharwWkofS + alpharyYkofS);
         betaSums[k] = E(kthBetaSum);
     }
 
     //pk
+
+    CRS crs;
+    return crs;
+}
+
+int main() {
+
+    ZZ modulus = ZZ(1) << 64;
+    ZZ_p::init(modulus);
+    
+    // P = x^4 + x + 1
+    ZZ_pX P = ZZ_pX();
+    ZZ_p one = ZZ_p(1);
+    SetCoeff(P, 0, one);
+    SetCoeff(P, 1, one);
+    SetCoeff(P, 4, one);
+
+    // instantiate GF(2^64, 4)
+    ZZ_pE::init(P);
+    cout << "modulus: " << P << "\n";
+
+    secretState state = setup();
+    QRP qrp = getQRP();
+    // CRS crs = getCRS(qrp, state);
 }
