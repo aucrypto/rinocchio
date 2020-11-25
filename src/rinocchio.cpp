@@ -7,35 +7,38 @@
 using namespace std;
 using namespace NTL;
 
+// Random element in R*
 ZZ_pE randomInvertible() {
     while (true) {
         // random element in R:
         ZZ_pE res = random_ZZ_pE();
-        //When d sufficiently large 
         //Check at least one coefficient is one
         for (int i = 0; i < ZZ_pE::degree(); i++) {
-            ZZ coeff = rep(rep(res)[i]);//todo remove tmp?
-            if (IsOdd(coeff)) return res;
+            //todo When d sufficiently large this check is not needed
+            if (IsOdd(rep(rep(res)[i]))) return res;
             
         }
     }
 }
 
-ZZ_pE randomNonZeroInExceptionalSet() {//TODO it's not pretty but it works for now :D
-    ZZ_pE preMod = randomInvertible(); //i.e. not zero when coefficients reduced mod 2
-    // bool reducedCoeffs[ZZ_pE::degree()]; //todo, why does this work? Doesn't it need to be a constant?
-    ZZ_pX reducedModTwo = ZZ_pX();
+// Random element in A
+ZZ_pE randomInExceptionalSet() {
+    ZZ_pX a = ZZ_pX();
     for (int i = 0; i < ZZ_pE::degree(); i++) {
-        // bool reducedCoeff = !divide(rep(rep(preMod)[i]), 2);
-        // reducedCoeffs[i] = reducedCoeff;
-        SetCoeff(reducedModTwo, i, rem(rep(rep(preMod)[i]), 2));
+        long coeff;
+        RandomBits(coeff, 1);
+        SetCoeff(a, i, coeff);
     }
-    // ZZ_pE fromarray = conv<ZZ_pE>(reducedCoeffs);
-    ZZ_pE fromPX = to_ZZ_pE(reducedModTwo);
+    ZZ_pE fromPX = to_ZZ_pE(a);
     return fromPX;
-    // d random bit coefficients
-    // use IsZero()
-    // return conv<ZZ_pE>("[1 1 1 1]"); // 1 + x + x^2 + x^3?
+}
+
+// Random element in A*
+ZZ_pE randomNonZeroInExceptionalSet() {
+    while (true) {
+        ZZ_pE res = randomInExceptionalSet();
+        if(! IsZero(res)) return res;
+    }
 }
 
 int main() {
@@ -73,7 +76,7 @@ int main() {
         beta = random_ZZ_pE();
     } while (IsZero(beta));
 
-    //TODO: keypair
+    //TODO: keypair, when joye-libert is working
     //TODO: QRP
     //TODO: CRS
 }
