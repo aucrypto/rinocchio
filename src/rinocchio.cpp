@@ -10,8 +10,20 @@
 using namespace std;
 using namespace NTL;
 
+
+
 //dummy encryption:
-ZZ_pE E(ZZ_pE x) {return x;}
+Vec<ZZ> E(ZZ_pE x) {
+    Vec<ZZ> res;
+    ZZ_pX polynomialRep = rep(x);
+    for (int i = 0; i < ZZ_pE::degree(); i++) {
+        ZZ_p coeff;
+        GetCoeff(coeff, polynomialRep, i);//returns 0 if i out of range.
+        //Todo actually encrypt the coefficient under the ith pulic key.
+        res.append(rep(coeff));
+    }
+    return res;
+}
 
 // Random element in R*
 ZZ_pE randomInvertible() {
@@ -62,6 +74,9 @@ ZZ_pE randomNonZeroInExceptionalSet() {
 }
 
 struct QRP {
+    long numberOfWires;
+    long numberOfInputWires;
+    long numberOfOutputWires;
     ZZ_pEX t; //target polynomial
     Vec<ZZ_pEX> V;
     Vec<ZZ_pEX> W;
@@ -69,71 +84,35 @@ struct QRP {
 };
 
 struct CRS {
-    Vec<ZZ_pE> powersOfS, powersOfSMultAlpha, rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums; 
+    Vec<Vec<ZZ>> powersOfS;
+    Vec<Vec<ZZ>> powersOfSMultAlpha;
+    Vec<Vec<ZZ>> rvVofS;
+    Vec<Vec<ZZ>> rwWofS;
+    Vec<Vec<ZZ>> ryYofS;
+    Vec<Vec<ZZ>> alpharvVofS;
+    Vec<Vec<ZZ>> alpharwWofS;
+    Vec<Vec<ZZ>> alpharyYofS;
+    Vec<Vec<ZZ>> betaSums; 
     bool publicKey;
 };
-
-struct secretState {
-    ZZ_pE s, r_v, r_w, r_y, alpha, alpha_v, alpha_w, alpha_y, beta;
-    bool secretKey;
-};
-
-secretState setup() {
-    //Find non-zero s in exceptional set (i.e. in A^*):
-    ZZ_pE s;
-    s = randomNonZeroInExceptionalSet();
-    //Find random r_v, r_w in R^*, i.e. d random coefficients where at least one is odd
-    ZZ_pE r_v, r_w, r_y;
-    r_v = randomInvertible();
-    r_w = randomInvertible();
-    r_y = r_v * r_w;
-    
-    ZZ_pE alpha, alpha_v, alpha_w, alpha_y;
-    alpha = randomInvertible();
-    alpha_v = randomInvertible();
-    alpha_w = randomInvertible();
-    alpha_y = randomInvertible();
-
-    ZZ_pE beta;
-    do {
-        beta = random_ZZ_pE();
-    } while (IsZero(beta));
-
-    secretState ss;
-    ss.s = s;
-    ss.r_v = r_v;
-    ss.r_w = r_w;
-    ss.r_y = r_y;
-    ss.alpha = alpha;
-    ss.alpha_v = alpha_v;
-    ss.alpha_w = alpha_w;
-    ss.alpha_y = alpha_y;
-    ss.beta = beta;
-    //TODO: keypair, when joye-libert is working
-    
-    ss.secretKey = false;
-    
-    return ss;
-}
 
 QRP getQRP() {
     //Pick distinct elements of exceptional set for each gate:
     ZZ_pE g_1, g_2;
-    g_1 = randomInExceptionalSet();
-    do {
-        g_2 = randomInExceptionalSet();
-    } while (g_1 == g_2);
+    g_1 = indexedElementInExceptionalSet(1);
+    g_2 = indexedElementInExceptionalSet(2);
     ZZ_pE diff = g_1 - g_2;
-    cout << "g_1" << g_1 << "\n";
-    cout << "g_2" << g_2 << "\n";
-    cout << "g_1-g_2" << diff << "\n";
-    cout << "g_2-g_1" << -diff << "\n";
-    // cout << "lead coeff g_1-g_2: " << LeadCoeff(rep(diff)) << "\n";
-    // cout << "lead coeff g_2-g_1: " << LeadCoeff(rep(-diff)) << "\n";
-    inv(diff);
-    cout << "g_1-g_2 passed\n";
-    inv(-diff);
-    cout << "g_2-g_1 passed\n";
+    // cout << "g_1" << g_1 << "\n";
+    // cout << "g_2" << g_2 << "\n";
+    // cout << "g_1-g_2" << diff << "\n";
+    // cout << "g_2-g_1" << -diff << "\n";
+    // // cout << "lead coeff g_1-g_2: " << LeadCoeff(rep(diff)) << "\n";
+    // // cout << "lead coeff g_2-g_1: " << LeadCoeff(rep(-diff)) << "\n";
+    // inv(diff);
+    // cout << "g_1-g_2 passed\n";
+    // inv(-diff);
+    // cout << "g_2-g_1 passed\n";
+
 
 
     // Compute t(x) = (x - g_1) * (x - g_2)
@@ -147,13 +126,13 @@ QRP getQRP() {
         ZZ_pEX x;
         SetX(x);
         t = (x - g_1)*(x-g_2);
-        cout << "g_1" << g_1 << "\n";
-        cout << "g_2" << g_2 << "\n";
-        cout << "x" << x << "\n";
-        cout << "t" << t << "\n";    
-        cout << "t(g_1)" << eval(t, g_1) << "\n";    
-        cout << "t(g_2)" << eval(t, g_2) << "\n";    
-        cout << "t(g_2+g_1)" << eval(t, g_2+g_1) << "\n";    
+        // cout << "g_1" << g_1 << "\n";
+        // cout << "g_2" << g_2 << "\n";
+        // cout << "x" << x << "\n";
+        // cout << "t" << t << "\n";    
+        // cout << "t(g_1)" << eval(t, g_1) << "\n";    
+        // cout << "t(g_2)" << eval(t, g_2) << "\n";    
+        // cout << "t(g_2+g_1)" << eval(t, g_2+g_1) << "\n";    
 
         // ZZ_pE galloisOne = conv<ZZ_pE>(1);
         ZZ_pE galloisOne;
@@ -238,8 +217,12 @@ QRP getQRP() {
         interpolate(Y(5), a, b_y_5);
         interpolate(Y(6), a, b_y_6);
     }
-
+    
     QRP qrp;
+    qrp.numberOfWires = 6;
+    qrp.numberOfInputWires = 4;
+    qrp.numberOfOutputWires = 1;
+    
     qrp.t  = t;
     qrp.V = V;
     qrp.W = W;
@@ -247,47 +230,89 @@ QRP getQRP() {
     return qrp;
 }
 
-CRS getCRS(QRP prog, secretState ss) {
-    
 
+struct secretState {
+    ZZ_pE s, r_v, r_w, r_y, alpha, alpha_v, alpha_w, alpha_y, beta;
+    bool secretKey;
+};
+
+secretState setup() {
+    //Find non-zero s in exceptional set (i.e. in A^*):
+    ZZ_pE s;
+    s = randomNonZeroInExceptionalSet();
+    //Find random r_v, r_w in R^*, i.e. d random coefficients where at least one is odd
+    ZZ_pE r_v, r_w, r_y;
+    r_v = randomInvertible();
+    r_w = randomInvertible();
+    r_y = r_v * r_w;
+    
+    ZZ_pE alpha, alpha_v, alpha_w, alpha_y;
+    alpha = randomInvertible();
+    alpha_v = randomInvertible();
+    alpha_w = randomInvertible();
+    alpha_y = randomInvertible();
+
+    ZZ_pE beta;
+    do {
+        beta = random_ZZ_pE();
+    } while (IsZero(beta));
+
+    secretState ss;
+    ss.s = s;
+    ss.r_v = r_v;
+    ss.r_w = r_w;
+    ss.r_y = r_y;
+    ss.alpha = alpha;
+    ss.alpha_v = alpha_v;
+    ss.alpha_w = alpha_w;
+    ss.alpha_y = alpha_y;
+    ss.beta = beta;
+    //TODO: keypair, when joye-libert is working
+    
+    ss.secretKey = false;
+    
+    return ss;
+}
+
+CRS getCRS(QRP prog, secretState ss) {
     
     //{E(S^i)}_i=0^d
     //{E(alpha * S^i)}_i=0^d
-    Vec<ZZ_pE> powersOfS;
-    Vec<ZZ_pE> powersOfSMultAlpha;
+    Vec<Vec<ZZ>> powersOfS;
+    Vec<Vec<ZZ>> powersOfSMultAlpha;
     {
         ZZ_pE acc;
         set(acc);
-        for (int i = 0; i <= ZZ_pE::degree(); i++) {
+        for (int i = 0; i < ZZ_pE::degree(); i++) {//todo == d?
             ZZ_pE ithPower = ZZ_pE(acc);
-            powersOfS.append(ithPower);
+            powersOfS.append(E(ithPower));
 
             ZZ_pE ithPowerMultAlpha;
             mul(ithPowerMultAlpha, ss.alpha, ithPower);
-            powersOfSMultAlpha.append(ithPowerMultAlpha);
+            powersOfSMultAlpha.append(E(ithPowerMultAlpha));
             
             mul(acc, acc, ss.s);
         }
     }
 
-    
-    Vec<ZZ_pE> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
-    rvVofS.SetLength(6);
-    rwWofS.SetLength(6);
-    ryYofS.SetLength(6);
-    alpharvVofS.SetLength(6);
-    alpharwWofS.SetLength(6);
-    alpharyYofS.SetLength(6);
-    betaSums.SetLength(6);
+    long sizeOfImid = prog.numberOfWires - prog.numberOfInputWires - prog.numberOfOutputWires;
+    Vec<Vec<ZZ>> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
+    rvVofS.SetLength(sizeOfImid);
+    rwWofS.SetLength(sizeOfImid);
+    ryYofS.SetLength(sizeOfImid);
+    alpharvVofS.SetLength(sizeOfImid);
+    alpharwWofS.SetLength(sizeOfImid);
+    alpharyYofS.SetLength(sizeOfImid);
+    betaSums.SetLength(sizeOfImid);
 
-    for (int k = 0; k < prog.V.length(); k++) {
+    for (int k = 0; k < sizeOfImid; k++) {
         //{E(r_v * v_k(S))}_k\in I_mid'
         //{E(r_w * w_k(S))}_k\in I_mid
         //{E(r_y * y_k(S))}_k\in I_mid
         ZZ_pE rvVkofS, rwWkofS, ryYkofS;
-        eval(rvVkofS, prog.V[k], ss.s);
-        eval(rwWkofS, prog.W[k], ss.s);
-        eval(ryYkofS, prog.Y[k], ss.s);
+        eval(rvVkofS, prog.V[k+prog.numberOfInputWires], ss.s);
+        eval(rwWkofS, prog.W[k+prog.numberOfInputWires], ss.s);
+        eval(ryYkofS, prog.Y[k+prog.numberOfInputWires], ss.s);
         mul(rvVkofS, rvVkofS, ss.r_v);
         mul(rwWkofS, rwWkofS, ss.r_w);
         mul(ryYkofS, ryYkofS, ss.r_y);
@@ -311,11 +336,46 @@ CRS getCRS(QRP prog, secretState ss) {
         kthBetaSum = ss.beta * (alpharvVkofS + alpharwWkofS + alpharyYkofS);
         betaSums[k] = E(kthBetaSum);
     }
-
     //pk
 
     CRS crs;
     return crs;
+}
+
+struct Proof {
+    bool isTrue;
+
+};
+
+Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
+    //Compute values for all multiplication gates:
+    ZZ_p c_5, c_6;
+    c_5 = input(3) * input(4);
+    cout << c_5 << " should be 6\n";
+    c_6 = c_5 * (input(1) + input(2));
+    cout << c_6 << " should be 42\n";
+
+    // E(r_v * Vmid(S))
+    // E(r_v * Vmid(S) * alpha_v)
+    // E(r_w * Wmid(S))
+    // E(r_w * Wmid(S) * alpha_w)
+    // E(r_y * Ymid(S))
+    // E(r_y * Ymid(S) * alpha_y)
+    // E(beta( (r_v * Vmid(S)) + (r_w * Wmid(S)) +(r_y * Ymid(S)) ))
+
+    // ZZ_p rvVmidOfS = c_5 * crs.rvVofS;
+    ZZ_p alphavrvVmidOfS;
+    ZZ_p rwWmidOfS;
+    ZZ_p alphawrwWmidOfS;
+    ZZ_p ryYmidOfS;
+    ZZ_p alphayryYmidOfS;
+    ZZ_p betaSum;
+
+    // E(h(s))
+    // E(alpha * h(s))
+
+    Proof proof;
+    return proof;
 }
 
 int main() {
@@ -337,4 +397,10 @@ int main() {
     QRP qrp = getQRP();
     secretState state = setup();
     CRS crs = getCRS(qrp, state);
+    Vec<ZZ_p> input;
+    input.append(ZZ_p(3));
+    input.append(ZZ_p(4));
+    input.append(ZZ_p(2));
+    input.append(ZZ_p(3));
+    Proof pi = prove(qrp, crs, input);
 }
