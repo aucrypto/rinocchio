@@ -83,19 +83,6 @@ struct QRP {
     Vec<ZZ_pEX> Y;
 };
 
-struct CRS {
-    Vec<Vec<ZZ>> powersOfS;
-    Vec<Vec<ZZ>> powersOfSMultAlpha;
-    Vec<Vec<ZZ>> rvVofS;
-    Vec<Vec<ZZ>> rwWofS;
-    Vec<Vec<ZZ>> ryYofS;
-    Vec<Vec<ZZ>> alpharvVofS;
-    Vec<Vec<ZZ>> alpharwWofS;
-    Vec<Vec<ZZ>> alpharyYofS;
-    Vec<Vec<ZZ>> betaSums; 
-    bool publicKey;
-};
-
 QRP getQRP() {
     //Pick distinct elements of exceptional set for each gate:
     ZZ_pE g_1, g_2;
@@ -274,6 +261,19 @@ secretState setup() {
     return ss;
 }
 
+struct CRS {
+    Vec<Vec<ZZ>> powersOfS;
+    Vec<Vec<ZZ>> powersOfSMultAlpha;
+    Vec<Vec<ZZ>> rvVofS;
+    Vec<Vec<ZZ>> rwWofS;
+    Vec<Vec<ZZ>> ryYofS;
+    Vec<Vec<ZZ>> alpharvVofS;
+    Vec<Vec<ZZ>> alpharwWofS;
+    Vec<Vec<ZZ>> alpharyYofS;
+    Vec<Vec<ZZ>> betaSums; 
+    bool publicKey;
+};
+
 CRS getCRS(QRP prog, secretState ss) {
     
     //{E(S^i)}_i=0^d
@@ -339,6 +339,15 @@ CRS getCRS(QRP prog, secretState ss) {
     //pk
 
     CRS crs;
+    crs.rvVofS = rvVofS;
+    crs.rwWofS = rwWofS;
+    crs.ryYofS = ryYofS;
+    crs.alpharvVofS = alpharvVofS;
+    crs.alpharwWofS = alpharwWofS;
+    crs.alpharyYofS = alpharyYofS;
+    crs.betaSums = betaSums;
+    crs.powersOfS = powersOfS;
+    crs.powersOfSMultAlpha = powersOfSMultAlpha;
     return crs;
 }
 
@@ -348,12 +357,18 @@ struct Proof {
 };
 
 Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
+    Vec<ZZ_p> allWireValues = input;
     //Compute values for all multiplication gates:
     ZZ_p c_5, c_6;
+    
     c_5 = input(3) * input(4);
+    allWireValues.append(c_5);
     cout << c_5 << " should be 6\n";
+
     c_6 = c_5 * (input(1) + input(2));
+    allWireValues.append(c_6);
     cout << c_6 << " should be 42\n";
+
 
     // E(r_v * Vmid(S))
     // E(r_v * Vmid(S) * alpha_v)
@@ -363,16 +378,40 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     // E(r_y * Ymid(S) * alpha_y)
     // E(beta( (r_v * Vmid(S)) + (r_w * Wmid(S)) +(r_y * Ymid(S)) ))
 
-    // ZZ_p rvVmidOfS = c_5 * crs.rvVofS;
-    ZZ_p alphavrvVmidOfS;
-    ZZ_p rwWmidOfS;
-    ZZ_p alphawrwWmidOfS;
-    ZZ_p ryYmidOfS;
-    ZZ_p alphayryYmidOfS;
-    ZZ_p betaSum;
+    // for now the Vec's in the crs only contain one element:
+    Vec<ZZ> rvVmidOfS = rep(c_5) * crs.rvVofS[0];
+    Vec<ZZ> alphavrvVmidOfS = rep(c_5) * crs.rwWofS[0];
+    Vec<ZZ> rwWmidOfS = rep(c_5) * crs.ryYofS[0];
+    Vec<ZZ> alphawrwWmidOfS = rep(c_5) * crs.alpharvVofS[0];
+    Vec<ZZ> ryYmidOfS = rep(c_5) * crs.alpharwWofS[0];
+    Vec<ZZ> alphayryYmidOfS = rep(c_5) * crs.alpharyYofS[0];
+    Vec<ZZ> betaSum =  crs.betaSums[0]; //TODO: What?
 
     // E(h(s))
     // E(alpha * h(s))
+
+    // todo: Compute p = V*W-Y
+    // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
+    ZZ_pEX V, W, Y;
+    for (int k = 0; k < prog.numberOfWires; k++) {
+        V += allWireValues[k] * prog.V[k];
+        W += allWireValues[k] * prog.W[k];
+        Y += allWireValues[k] * prog.Y[k];
+    }
+    ZZ_pEX P = V*W-Y;
+
+    // todo: Compute h = p*(t^-1)
+    ZZ_pEX H = P / prog.t;//todo we should precompute the inverse of t instead.
+
+    // todo: `evaluate' h(S) by mutiplying powers of S by coefficients of h
+    // todo: `evaluate' alpha*h(S) by mutiplying powers of alpha*S by coefficients of h
+    Vec<Vec<ZZ>> hOfS, alphaHofS;
+    for (int i = 0 ; i < ZZ_pE::degree(); i++) {
+        Vec<ZZ> ithCoeffOfH = E(coeff(H, i));// use ith public key
+        // Vec<ZZ> ithTermOfHOfS = ithCoeffOfH * crs.powersOfS[i];
+        // hOfS.append();
+    }
+
 
     Proof proof;
     return proof;
