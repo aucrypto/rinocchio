@@ -83,39 +83,53 @@ int main() {
     add_encrypted(c1c2, c1, c2, n);
     scalar_mult_encrypted(sc1, c1, s, n);
 
-    ZZ m1_recovered, m2_recovered, m1m2_recovered, sm1_recovered;
-    decrypt(m1_recovered, c1, p, p_prime, D, k, pow2k1);
-    decrypt(m2_recovered, c2, p, p_prime, D, k, pow2k1);
-    decrypt(m1m2_recovered, c1c2, p, p_prime, D, k, pow2k1);
-    decrypt(sm1_recovered, sc1, p, p_prime, D, k, pow2k1);
-
-    // cout << "m_recovered: " << m_recovered << "\n";
-
-    assert((m1 == m1_recovered) == 1);
-    assert((m2 == m2_recovered) == 1);
-    assert((m1m2 == m1m2_recovered) == 1);
-    assert((sm1 == sm1_recovered) == 1);
-
-    // TODO: fix this. 
-    // Somehow using add_encrypted inside a loop sets c_sum to zero
-    ZZ m, m_sum, c, c_sum, m_sum_decrypted;
-    c_sum = ZZ(0);
-    for (int i = 0; i < 30; i++) {
-        m = RandomBits_ZZ(k);
-        encrypt(c, m, n, y, k, pow2k);
-        m_sum = m_sum + m;
-        cout << "c              : " << c << "\n";
-        cout << "c_sum          : " << c_sum << "\n";
-        cout << "n              : " << n << "\n";
-        add_encrypted(c_sum, c_sum, c, n);
-        cout << "c_sum          : " << c_sum << "\n";
+    {
+        // test homomorphic encryption
+        ZZ m1_recovered, m2_recovered, m1m2_recovered, sm1_recovered;
+        decrypt(m1_recovered, c1, p, p_prime, D, k, pow2k1);
+        decrypt(m2_recovered, c2, p, p_prime, D, k, pow2k1);
+        decrypt(m1m2_recovered, c1c2, p, p_prime, D, k, pow2k1);
+        decrypt(sm1_recovered, sc1, p, p_prime, D, k, pow2k1);
+        assert((m1 == m1_recovered) == 1);
+        assert((m2 == m2_recovered) == 1);
+        assert((m1m2 == m1m2_recovered) == 1);
+        assert((sm1 == sm1_recovered) == 1);
     }
-    decrypt(m_sum_decrypted, c_sum, p, p_prime, D, k, pow2k1);
-    cout << "c_sum          : " << c_sum << "\n";
-    cout << "m_sum          : " << m_sum << "\n";
-    cout << "m_sum_decrypted: " << m_sum_decrypted << "\n";
-    assert((m_sum == m_sum_decrypted) == 1);
 
+    {
+        // test iterated addition
+        ZZ m, m_sum, c, c_sum, m_sum_decrypted;
+        m_sum = RandomBits_ZZ(k);
+        encrypt(c_sum, m_sum, n, y, k, pow2k);
+        for (int i = 0; i < 200; i++) {
+            m = RandomBits_ZZ(k);
+            encrypt(c, m, n, y, k, pow2k);
+            m_sum = (m_sum + m) % modulus;
+            add_encrypted(c_sum, c_sum, c, n);
+        }
+        decrypt(m_sum_decrypted, c_sum, p, p_prime, D, k, pow2k1);
+        // cout << "c_sum          : " << c_sum << "\n";
+        // cout << "m_sum          : " << m_sum << "\n";
+        // cout << "m_sum_decrypted: " << m_sum_decrypted << "\n";
+        assert((m_sum == m_sum_decrypted) == 1);
+    }
+
+    {
+        // test iterated scaling
+        ZZ scalar, m_scaled, c, c_scaled, m_scaled_decrypted;
+        m_scaled = RandomBits_ZZ(k);
+        encrypt(c_scaled, m_scaled, n, y, k, pow2k);
+        for (int i = 0; i < 200; i++) {
+            scalar = RandomBits_ZZ(k);
+            m_scaled = (m_scaled * scalar) % modulus;
+            scalar_mult_encrypted(c_scaled, c_scaled, scalar, n);
+        }
+        decrypt(m_scaled_decrypted, c_scaled, p, p_prime, D, k, pow2k1);
+        // cout << "c_sum          : " << c_sum << "\n";
+        // cout << "m_sum          : " << m_sum << "\n";
+        // cout << "m_sum_decrypted: " << m_sum_decrypted << "\n";
+        assert((m_scaled == m_scaled_decrypted) == 1);
+    }
 
     cout << "\nPassed all tests!\n";
 }

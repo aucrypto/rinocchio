@@ -10,6 +10,6 @@ void encrypt(ZZ& c, const ZZ& m, const ZZ& n, const ZZ& y, const int k, const ZZ
 
 void decrypt(ZZ& m, const ZZ& c, const ZZ& p, const ZZ& p_prime, const ZZ& D_, const int k, const ZZ& pow2k1);
 
-void scalar_mult_encrypted(ZZ& c_result, const ZZ& c, const ZZ& scalar, ZZ& n);
+void add_encrypted(ZZ& result, const ZZ& c1, const ZZ& c2, const ZZ& n);
 
-void add_encrypted(ZZ& c_result, ZZ& c1, const ZZ& c2, const ZZ& n);
+void scalar_mult_encrypted(ZZ& result, const ZZ& c, const ZZ& scalar, const ZZ& n);
