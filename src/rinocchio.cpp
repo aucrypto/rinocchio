@@ -27,13 +27,27 @@ ZZ_pE randomInvertible() {
     }
 }
 
+ZZ_pE indexedElementInExceptionalSet(long index) {
+    //e.g. 5=b101 becomes [1 0 1] and 11 = b1011 becomes [1 1 0 1]
+    ZZ_pX res = ZZ_pX();
+    for (int i = 0; i < ZZ_pE::degree(); i++) {
+        long mask = 1 << i;
+        if ((mask & index) != 0) {
+            SetCoeff(res, i, 1);
+        }
+    }
+    return to_ZZ_pE(res);
+}
+
 // Random element in A
 ZZ_pE randomInExceptionalSet() {
     ZZ_pX a = ZZ_pX();
     for (int i = 0; i < ZZ_pE::degree(); i++) {
         long coeff;
         RandomBits(coeff, 1);
-        SetCoeff(a, i, coeff);
+        if (coeff == 1) {
+            SetCoeff(a, i, coeff);
+        }
     }
     ZZ_pE fromPX = to_ZZ_pE(a);
     return fromPX;
@@ -68,7 +82,6 @@ secretState setup() {
     //Find non-zero s in exceptional set (i.e. in A^*):
     ZZ_pE s;
     s = randomNonZeroInExceptionalSet();
-    cout << s << "\n" ;
     //Find random r_v, r_w in R^*, i.e. d random coefficients where at least one is odd
     ZZ_pE r_v, r_w, r_y;
     r_v = randomInvertible();
@@ -110,6 +123,18 @@ QRP getQRP() {
     do {
         g_2 = randomInExceptionalSet();
     } while (g_1 == g_2);
+    ZZ_pE diff = g_1 - g_2;
+    cout << "g_1" << g_1 << "\n";
+    cout << "g_2" << g_2 << "\n";
+    cout << "g_1-g_2" << diff << "\n";
+    cout << "g_2-g_1" << -diff << "\n";
+    // cout << "lead coeff g_1-g_2: " << LeadCoeff(rep(diff)) << "\n";
+    // cout << "lead coeff g_2-g_1: " << LeadCoeff(rep(-diff)) << "\n";
+    inv(diff);
+    cout << "g_1-g_2 passed\n";
+    inv(-diff);
+    cout << "g_2-g_1 passed\n";
+
 
     // Compute t(x) = (x - g_1) * (x - g_2)
     Vec<ZZ_pEX> V, W, Y;
@@ -191,10 +216,8 @@ QRP getQRP() {
         Vec<ZZ_pE> b_y_6;
         b_y_6.append(ZZ_pE::zero());
         b_y_6.append(galloisOne);
-        cout << ZZ_pE::modulus() << "\n";
 
         interpolate(V(1), a, b_v_1);
-        cout << "sarg\n";
         interpolate(V(2), a, b_v_2);
         interpolate(V(3), a, b_v_3);
         interpolate(V(4), a, b_v_4);
@@ -299,7 +322,7 @@ int main() {
 
     ZZ modulus = ZZ(1) << 64;
     ZZ_p::init(modulus);
-    
+
     // P = x^4 + x + 1
     ZZ_pX P = ZZ_pX();
     ZZ_p one = ZZ_p(1);
@@ -311,7 +334,7 @@ int main() {
     ZZ_pE::init(P);
     cout << "modulus: " << P << "\n";
 
-    secretState state = setup();
     QRP qrp = getQRP();
-    // CRS crs = getCRS(qrp, state);
+    secretState state = setup();
+    CRS crs = getCRS(qrp, state);
 }
