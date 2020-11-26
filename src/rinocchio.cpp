@@ -4,6 +4,7 @@
 #include <NTL/ZZ_pE.h>
 #include <NTL/ZZ_pEX.h>
 #include <NTL/vec_ZZ_pE.h>
+#include <NTL/ZZX.h>
 #include <vector>
 
 
@@ -408,7 +409,15 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     Vec<Vec<ZZ>> hOfS, alphaHofS;
     for (int i = 0 ; i < ZZ_pE::degree(); i++) {
         Vec<ZZ> ithCoeffOfH = E(coeff(H, i));// use ith public key
-        // Vec<ZZ> ithTermOfHOfS = ithCoeffOfH * crs.powersOfS[i];
+        // I guess we need to multiply them as polynomials? Use ZZX?
+        ZZX ithCoeffOfHX, ithPowerOfSX, alphaIthPowerOfSX; //todo only makes sense if ciphertexts are "straightforwardly" multiplied together..
+        ithCoeffOfHX = to_ZZX(ithCoeffOfH);
+        ithPowerOfSX = to_ZZX(crs.powersOfS[i]);
+        alphaIthPowerOfSX = to_ZZX(crs.powersOfSMultAlpha[i]);
+        ZZX ithTermOfHSX = ithCoeffOfHX * ithPowerOfSX; //todo modular reduction, or what to do about increased degree? Nothing?
+        ZZX ithTermOfalphaHSX = ithCoeffOfHX * alphaIthPowerOfSX;
+        Vec<ZZ> ithTermOfHOfS = ithTermOfHSX.rep;
+        Vec<ZZ> ithTermOfalphaHOfS = ithTermOfalphaHSX.rep;
         // hOfS.append();
     }
 
