@@ -4,7 +4,7 @@
 #include <NTL/ZZ_pE.h>
 // #include <NTL/ZZ_limbs.h>
 #include <assert.h>
-#include "../include/joy_libert.h"
+#include <joye_libert.h>
 
 
 using namespace std;

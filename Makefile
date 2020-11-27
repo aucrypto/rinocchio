@@ -1,18 +1,18 @@
 OUTDIR = out
 
-build: joy_libert rinocchio
+build: joye_libert rinocchio
 
-test: joy_libert
+test: joye_libert
 	./$(OUTDIR)/jltest
 
 run: rinocchio
 	./$(OUTDIR)/rinocchio
 
-joy_libert: | out
-	g++ -O2 -std=c++11 src/joy_libert_test.cpp src/joy_libert.cpp -o $(OUTDIR)/jltest -pthread -lntl -lgmp -lm
+joye_libert: | out
+	g++ -O2 -std=c++11 -I./include test/joye_libert_test.cpp src/*.cpp -o $(OUTDIR)/jltest -pthread -lntl -lgmp -lm
 
 rinocchio: | out
-	g++ -O2 -std=c++11 src/rinocchio.cpp src/joy_libert.cpp -o $(OUTDIR)/jltest -pthread -lntl -lgmp -lm
+	g++ -O2 -std=c++11 -I./include test/rinocchio.cpp src/*.cpp -o $(OUTDIR)/jltest -pthread -lntl -lgmp -lm
 
 out:
 	mkdir -p $(OUTDIR)
