@@ -125,7 +125,7 @@ struct Proof {
 Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     Vec<ZZ_p> allWireValues = input;
     //Compute values for all multiplication gates:
-    ZZ_p c_5, c_6;
+    ZZ_p c_5, c_6;//todo generalize using circuit representation
     
     c_5 = input(3) * input(4);
     allWireValues.append(c_5);
@@ -135,23 +135,18 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     allWireValues.append(c_6);
     cout << c_6 << " should be 42\n";
 
-    // todo: Compute p = V*W-Y
+    // Compute p = V*W-Y
     // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
-    ZZ_pEX V, W, Y, Vmid, Wmid, Ymid;
+    ZZ_pEX V, W, Y;
     for (int k = 0; k < prog.numberOfWires; k++) {
         V += allWireValues[k] * prog.V[k];
         W += allWireValues[k] * prog.W[k];
         Y += allWireValues[k] * prog.Y[k];
-        bool isKmid = prog.numberOfInputWires < k && 
-                    k <= prog.numberOfWires - prog.numberOfOutputWires + 1;
-        if (isKmid) {
-            cout << k << " only k_mid should be 5\n";
-            Vmid += allWireValues[k] * prog.V[k];
-            Wmid += allWireValues[k] * prog.W[k];
-            Ymid += allWireValues[k] * prog.Y[k];    
-        }
     }
     ZZ_pEX P = V*W-Y;
+
+    // Compute h = p*(t^-1)
+    ZZ_pEX H = P / prog.t;//todo we should precompute the inverse of t instead.
 
 
     // E(r_v * Vmid(S))
@@ -164,23 +159,20 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
 
     // for now the Vec's in the crs only contain one element:
     Vec<ZZ> rvVmidOfS = rep(c_5) * crs.rvVofS[0];
-    Vec<ZZ> alphavrvVmidOfS = rep(c_5) * crs.rwWofS[0];
-    Vec<ZZ> rwWmidOfS = rep(c_5) * crs.ryYofS[0];
-    Vec<ZZ> alphawrwWmidOfS = rep(c_5) * crs.alpharvVofS[0];
-    Vec<ZZ> ryYmidOfS = rep(c_5) * crs.alpharwWofS[0];
+    Vec<ZZ> rwWmidOfS = rep(c_5) * crs.rwWofS[0];
+    Vec<ZZ> ryYmidOfS = rep(c_5) * crs.ryYofS[0];
+    Vec<ZZ> alphavrvVmidOfS = rep(c_5) * crs.alpharvVofS[0];
+    Vec<ZZ> alphawrwWmidOfS = rep(c_5) * crs.alpharwWofS[0];
     Vec<ZZ> alphayryYmidOfS = rep(c_5) * crs.alpharyYofS[0];
-    Vec<ZZ> betaSum =  crs.betaSums[0]; //TODO: What?
+    Vec<ZZ> betaSum = rep(c_5) * crs.betaSums[0];
 
     // E(h(s))
     // E(alpha * h(s))
 
-    // todo: Compute h = p*(t^-1)
-    ZZ_pEX H = P / prog.t;//todo we should precompute the inverse of t instead.
-
     // todo: `evaluate' h(S) by mutiplying powers of S by coefficients of h
     // todo: `evaluate' alpha*h(S) by mutiplying powers of alpha*S by coefficients of h
     Vec<Vec<ZZ>> hOfS, alphaHofS;
-    for (int i = 0 ; i < ZZ_pE::degree(); i++) {
+    for (int i = 0 ; i < ZZ_pE::degree(); i++) {//todo d + 1?
         Vec<ZZ> ithCoeffOfH = E(coeff(H, i));// use ith public key
         // I guess we need to multiply them as polynomials? Use ZZX?
         ZZX ithCoeffOfHX, ithPowerOfSX, alphaIthPowerOfSX; //todo only makes sense if ciphertexts are "straightforwardly" multiplied together..
