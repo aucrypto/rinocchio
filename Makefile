@@ -5,6 +5,9 @@ build: joy_libert rinocchio
 test: joy_libert
 	./$(OUTDIR)/jltest
 
+run: rinocchio
+	./$(OUTDIR)/rinocchio
+
 joy_libert: | out
 	g++ -O2 -std=c++11 src/joy_libert_test.cpp src/joy_libert.cpp -o $(OUTDIR)/jltest -pthread -lntl -lgmp -lm
 

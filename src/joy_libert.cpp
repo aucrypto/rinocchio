@@ -130,11 +130,11 @@ JLEncodingKey gen_jl_encoding_key(long l, long k, long d) {
         ZZ p_prime, p, n, g, D;
         keygen(p_prime, p, n, g, D, l, k);
         keys.append(JLEncodingKeyPart{
-            p_prime: p_prime,
-            p: p,
-            n: n,
-            g: g,
-            D: D,
+            .p_prime = p_prime,
+            .p = p,
+            .n = n,
+            .g = g,
+            .D = D,
         });
     };
 
@@ -143,12 +143,12 @@ JLEncodingKey gen_jl_encoding_key(long l, long k, long d) {
     precompute_pow2(pow2k1, k-1);
 
     return JLEncodingKey{
-        keys: keys,
-        pow2k: pow2k, 
-        pow2k1: pow2k1,
-        l: l, 
-        k: k, 
-        d: d,
+        .keys = keys,
+        .pow2k = pow2k, 
+        .pow2k1 = pow2k1,
+        .l = l, 
+        .k = k, 
+        .d = d,
     };
 }
 
@@ -168,7 +168,7 @@ JLEncoding encode(const ZZ_pE& m, const JLEncodingKey& key) {
         encrypt(c, rep(ci), keypart_i.n, keypart_i.g, key.k, key.pow2k);
         res.append(c);
     }
-    return JLEncoding{coeffs: res};
+    return JLEncoding{.coeffs = res};
 }
 
 ZZ_pE decode(const JLEncoding& c, const JLEncodingKey& key) {
