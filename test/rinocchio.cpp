@@ -118,8 +118,15 @@ CRS getCRS(QRP prog, secretState ss) {
 }
 
 struct Proof {
-    bool isTrue;
-
+    Vec<ZZ> rvVmidOfS;
+    Vec<ZZ> rwWmidOfS;
+    Vec<ZZ> ryYmidOfS;
+    Vec<ZZ> alphaVrvVmidOfS;
+    Vec<ZZ> alphaWrwWmidOfS;
+    Vec<ZZ> alphaYryYmidOfS;
+    Vec<ZZ> betaSum;
+    Vec<ZZ> hOfS;
+    Vec<ZZ> alphaHOfS;
 };
 
 Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
@@ -171,24 +178,35 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
 
     // todo: `evaluate' h(S) by mutiplying powers of S by coefficients of h
     // todo: `evaluate' alpha*h(S) by mutiplying powers of alpha*S by coefficients of h
-    Vec<Vec<ZZ>> hOfS, alphaHofS;
+    ZZX hOfS, alphaHofS;
+    Vec<ZZ> mod = to_vec_ZZ(ZZ_pE::modulus().f.rep);
+    ZZX modX = to_ZZX(mod);
     for (int i = 0 ; i < ZZ_pE::degree(); i++) {//todo d + 1?
-        Vec<ZZ> ithCoeffOfH = E(coeff(H, i));// use ith public key
+        Vec<ZZ> ithCoeffOfH = E(coeff(H, i));// todo don't use the actual encryption
         // I guess we need to multiply them as polynomials? Use ZZX?
         ZZX ithCoeffOfHX, ithPowerOfSX, alphaIthPowerOfSX; //todo only makes sense if ciphertexts are "straightforwardly" multiplied together..
         ithCoeffOfHX = to_ZZX(ithCoeffOfH);
         ithPowerOfSX = to_ZZX(crs.powersOfS[i]);
         alphaIthPowerOfSX = to_ZZX(crs.powersOfSMultAlpha[i]);
-        ZZX ithTermOfHSX = ithCoeffOfHX * ithPowerOfSX; //todo modular reduction, or what to do about increased degree? Nothing?
-        ZZX ithTermOfalphaHSX = ithCoeffOfHX * alphaIthPowerOfSX;
-        Vec<ZZ> ithTermOfHOfS = ithTermOfHSX.rep;
-        Vec<ZZ> ithTermOfalphaHOfS = ithTermOfalphaHSX.rep;
-        // hOfS.append();
+        ZZX ithTermOfHSX = (ithCoeffOfHX * ithPowerOfSX) % modX;
+        ZZX ithTermOfalphaHSX = (ithCoeffOfHX * alphaIthPowerOfSX) % modX;
+        hOfS += ithTermOfHSX;
+        alphaHofS += ithTermOfalphaHSX;//todo check
     }
+    hOfS %= modX;
+    alphaHofS %= modX;
 
-
-    Proof proof;
-    return proof;
+    return Proof{
+        .rvVmidOfS = rvVmidOfS,
+        .rwWmidOfS = rwWmidOfS,
+        .ryYmidOfS  =ryYmidOfS,
+        .alphaVrvVmidOfS = alphavrvVmidOfS,
+        .alphaWrwWmidOfS = alphawrwWmidOfS,
+        .alphaYryYmidOfS = alphayryYmidOfS,
+        .betaSum = betaSum,
+        .hOfS = hOfS.rep,
+        .alphaHOfS = alphaHofS.rep,
+    };
 }
 
 int main() {
