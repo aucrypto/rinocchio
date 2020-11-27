@@ -13,3 +13,27 @@ void decrypt(ZZ& m, const ZZ& c, const ZZ& p, const ZZ& p_prime, const ZZ& D_, c
 void add_encrypted(ZZ& result, const ZZ& c1, const ZZ& c2, const ZZ& n);
 
 void scalar_mult_encrypted(ZZ& result, const ZZ& c, const ZZ& scalar, const ZZ& n);
+
+struct JLEncoding {
+    Vec<ZZ> coeffs;
+};
+
+struct JLEncodingKeyPart {
+    ZZ p_prime, p, n, g, D;
+};
+
+struct JLEncodingKey {
+    Vec<JLEncodingKeyPart> keys;
+    ZZ pow2k, pow2k1;
+    long l, k, d;
+};
+
+JLEncodingKey gen_jl_encoding_key(long l, long k, long d);
+
+JLEncoding encode(const ZZ_pE& m, const JLEncodingKey& key);
+
+ZZ_pE decode(const JLEncoding& c, const JLEncodingKey& key);
+
+void jle_add_assign(JLEncoding& a, const JLEncoding& b, const JLEncodingKey& key);
+
+void jle_mult_assign(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key);

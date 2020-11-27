@@ -131,5 +131,30 @@ int main() {
         assert((m_scaled == m_scaled_decrypted) == 1);
     }
 
+    {
+        ZZ_pE m1 = random_ZZ_pE();
+        ZZ_pE m2 = random_ZZ_pE();
+        ZZ_pE m3 = random_ZZ_pE();
+        JLEncodingKey key = gen_jl_encoding_key(l, k, 4);
+        JLEncoding encoded1 = encode(m1, key);
+        JLEncoding encoded2 = encode(m2, key);
+        JLEncoding encoded3 = encode(m3, key);
+        
+        ZZ_pE decoded = decode(encoded1, key);
+        // cout << "m1......: " << m1 << "\n";
+        // cout << "decoded: " << decoded << "\n";
+        assert (m1 == decoded);
+
+        jle_add_assign(encoded1, encoded2, key);
+        jle_add_assign(encoded1, encoded3, key);
+        decoded = decode(encoded1, key);
+        assert (decoded == (m1 + m2 + m3));
+        
+        ZZ scalar = ZZ(1231314);
+        jle_mult_assign(encoded2, scalar, key);
+        decoded = decode(encoded2, key);
+        assert (decoded == (conv<ZZ_pE>(scalar) * m2));
+    }
+
     cout << "\nPassed all tests!\n";
 }
