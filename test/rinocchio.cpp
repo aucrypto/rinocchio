@@ -135,6 +135,24 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     allWireValues.append(c_6);
     cout << c_6 << " should be 42\n";
 
+    // todo: Compute p = V*W-Y
+    // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
+    ZZ_pEX V, W, Y, Vmid, Wmid, Ymid;
+    for (int k = 0; k < prog.numberOfWires; k++) {
+        V += allWireValues[k] * prog.V[k];
+        W += allWireValues[k] * prog.W[k];
+        Y += allWireValues[k] * prog.Y[k];
+        bool isKmid = prog.numberOfInputWires < k && 
+                    k <= prog.numberOfWires - prog.numberOfOutputWires + 1;
+        if (isKmid) {
+            cout << k << " only k_mid should be 5\n";
+            Vmid += allWireValues[k] * prog.V[k];
+            Wmid += allWireValues[k] * prog.W[k];
+            Ymid += allWireValues[k] * prog.Y[k];    
+        }
+    }
+    ZZ_pEX P = V*W-Y;
+
 
     // E(r_v * Vmid(S))
     // E(r_v * Vmid(S) * alpha_v)
@@ -155,16 +173,6 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
 
     // E(h(s))
     // E(alpha * h(s))
-
-    // todo: Compute p = V*W-Y
-    // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
-    ZZ_pEX V, W, Y;
-    for (int k = 0; k < prog.numberOfWires; k++) {
-        V += allWireValues[k] * prog.V[k];
-        W += allWireValues[k] * prog.W[k];
-        Y += allWireValues[k] * prog.Y[k];
-    }
-    ZZ_pEX P = V*W-Y;
 
     // todo: Compute h = p*(t^-1)
     ZZ_pEX H = P / prog.t;//todo we should precompute the inverse of t instead.
