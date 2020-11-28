@@ -10,6 +10,7 @@
 #include <gr.h>
 #include <qrp.h>
 #include <setup.h>
+#include <rinocchio.h>
 
 using namespace std;
 using namespace NTL;
@@ -35,19 +36,6 @@ ZZ_pE D(Vec<ZZ> y) {
     }
     return conv<ZZ_pE>(x);
 }
-
-struct CRS {
-    Vec<Vec<ZZ>> powersOfS;
-    Vec<Vec<ZZ>> powersOfSMultAlpha;
-    Vec<Vec<ZZ>> rvVofS;
-    Vec<Vec<ZZ>> rwWofS;
-    Vec<Vec<ZZ>> ryYofS;
-    Vec<Vec<ZZ>> alpharvVofS;
-    Vec<Vec<ZZ>> alpharwWofS;
-    Vec<Vec<ZZ>> alpharyYofS;
-    Vec<Vec<ZZ>> betaSums; 
-    bool publicKey;
-};
 
 CRS getCRS(QRP prog, secretState ss) {
     
@@ -125,18 +113,6 @@ CRS getCRS(QRP prog, secretState ss) {
     crs.powersOfSMultAlpha = powersOfSMultAlpha;
     return crs;
 }
-
-struct Proof {
-    Vec<ZZ> rvVmidOfS;
-    Vec<ZZ> rwWmidOfS;
-    Vec<ZZ> ryYmidOfS;
-    Vec<ZZ> alphaVrvVmidOfS;
-    Vec<ZZ> alphaWrwWmidOfS;
-    Vec<ZZ> alphaYryYmidOfS;
-    Vec<ZZ> betaSum;
-    Vec<ZZ> hOfS;
-    Vec<ZZ> alphaHOfS;
-};
 
 Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     Vec<ZZ_p> allWireValues = input;
@@ -253,38 +229,33 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
     }
 
     // todo compute P_io
+    // compute P_in
+    ZZ_pE v_io, w_io, y_io;
+    for (int k = 0; k < input.length(); k++) {
+        v_io += input[k] * eval(qrp.V[k], secret.s);
+        w_io += input[k] * eval(qrp.W[k], secret.s);
+        y_io += input[k] * eval(qrp.Y[k], secret.s);
+    }
+    // compute P_out
+    for (int k = 0; k < output.length(); k++) {
+        cout << k+qrp.numberOfWires - qrp.numberOfOutputWires << " should be 5\n";
+        v_io += output[k] * eval(qrp.V[k+qrp.numberOfWires - qrp.numberOfOutputWires], secret.s);
+        w_io += output[k] * eval(qrp.W[k+qrp.numberOfWires - qrp.numberOfOutputWires], secret.s);
+        y_io += output[k] * eval(qrp.Y[k+qrp.numberOfWires - qrp.numberOfOutputWires], secret.s);
+    }
+
+    //todo we cannot divide by r_v, r_w, and r_y because of the inv bug, but we have r_y = r_v * r_w
+    ZZ_pE computedV = v_io + rvVmidOfS;
+    ZZ_pE computedW = w_io + rwWmidOfS;
+    ZZ_pE computedY = y_io + ryYmidOfS;
+
+    ZZ_pE computedP = computedV * computedW - computedY;
+    ZZ_pE hMultT = hOfS * eval(qrp.t, secret.s);
+    if (computedP != hMultT) {
+        cout << computedP << "\n";
+        cout << hMultT << "\n";
+        return false;
+    }
 
     return  true;
-}
-
-int main() {
-
-    ZZ modulus = ZZ(1) << 64;
-    ZZ_p::init(modulus);
-
-    // P = x^4 + x + 1
-    ZZ_pX P = ZZ_pX();
-    ZZ_p one = ZZ_p(1);
-    SetCoeff(P, 0, one);
-    SetCoeff(P, 1, one);
-    SetCoeff(P, 4, one);
-
-    // instantiate GF(2^64, 4)
-    ZZ_pE::init(P);
-    cout << "modulus: " << P << "\n";
-
-    QRP qrp = getQRP();
-    secretState state = setup();
-    CRS crs = getCRS(qrp, state);
-    Vec<ZZ_p> input;
-    input.append(ZZ_p(3));
-    input.append(ZZ_p(4));
-    input.append(ZZ_p(2));
-    input.append(ZZ_p(3));
-    Proof pi = prove(qrp, crs, input);
-
-    Vec<ZZ_p> output;
-    output.append(ZZ_p(42));
-
-    cout << verify(qrp, state, crs, pi, input, output) << "\n";
 }
