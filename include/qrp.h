@@ -2,6 +2,11 @@
 #define QRP_H
 
 #include <NTL/ZZ_pEX.h>
+#include <vector>
+
+struct Gate {
+    std::vector<long> leftInputs, rightInputs;
+};
 
 struct Circuit {
     long numberOfWires;
@@ -9,7 +14,7 @@ struct Circuit {
     long numberOfMidWires;
     long numberOfOutputWires;
     long numberOfMultiplicationGates;
-    
+    std::vector<Gate> gates;
 };
 
 struct QRP {

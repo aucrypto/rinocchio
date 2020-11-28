@@ -8,105 +8,67 @@ using namespace std;
 
 QRP getQRP(Circuit circuit) {
     //Pick distinct elements of exceptional set for each gate:
-    ZZ_pE g_1, g_2;
-    g_1 = indexedElementInExceptionalSet(1);
-    g_2 = indexedElementInExceptionalSet(2);
-    ZZ_pE diff = g_1 - g_2;
+    Vec<ZZ_pE> multWires;
+
 
     // Compute t(x) = (x - g_1) * (x - g_2)
     Vec<ZZ_pEX> V, W, Y;
-    V.SetLength(6);
-    W.SetLength(6);
-    Y.SetLength(6);
-    ZZ_pEX t;
+    V.SetLength(circuit.numberOfWires);
+    W.SetLength(circuit.numberOfWires);
+    Y.SetLength(circuit.numberOfWires);
+    ZZ_pEX t = conv<ZZ_pEX>(1);
+    ZZ_pE galloisOne;
+    set(galloisOne);
+    ZZ_pEX x;
+    SetX(x);
     
-    {
-        ZZ_pEX x;
-        SetX(x);
-        t = (x - g_1)*(x-g_2);
+    Vec<Vec<ZZ_pE>> v_values, w_values, y_values;
+    v_values.SetLength(circuit.numberOfWires);
+    w_values.SetLength(circuit.numberOfWires);
+    y_values.SetLength(circuit.numberOfWires);
+    
+    for (int k = 0; k < circuit.numberOfMultiplicationGates; k++) {
+        multWires.append(indexedElementInExceptionalSet(k));
 
-        ZZ_pE galloisOne;
-        set(galloisOne);
+        //target polynomial:
+        t *= x - indexedElementInExceptionalSet(k);
 
-        Vec<ZZ_pE> a;
-        a.append(g_1);
-        a.append(g_2);
-        Vec<ZZ_pE> b_v_1;
-        b_v_1.append(ZZ_pE::zero());
-        b_v_1.append(galloisOne);
-        Vec<ZZ_pE> b_v_2;
-        b_v_2.append(ZZ_pE::zero());
-        b_v_2.append(galloisOne);
-        Vec<ZZ_pE> b_v_3;
-        b_v_3.append(galloisOne);
-        b_v_3.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_v_4;
-        b_v_4.append(ZZ_pE::zero());
-        b_v_4.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_v_5;
-        b_v_5.append(ZZ_pE::zero());
-        b_v_5.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_v_6;
-        b_v_6.append(ZZ_pE::zero());
-        b_v_6.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_w_1;
-        b_w_1.append(ZZ_pE::zero());
-        b_w_1.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_w_2;
-        b_w_2.append(ZZ_pE::zero());
-        b_w_2.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_w_3;
-        b_w_3.append(ZZ_pE::zero());
-        b_w_3.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_w_4;
-        b_w_4.append(galloisOne);
-        b_w_4.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_w_5;
-        b_w_5.append(ZZ_pE::zero());
-        b_w_5.append(galloisOne);
-        Vec<ZZ_pE> b_w_6;
-        b_w_6.append(ZZ_pE::zero());
-        b_w_6.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_y_1;
-        b_y_1.append(ZZ_pE::zero());
-        b_y_1.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_y_2;
-        b_y_2.append(ZZ_pE::zero());
-        b_y_2.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_y_3;
-        b_y_3.append(ZZ_pE::zero());
-        b_y_3.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_y_4;
-        b_y_4.append(ZZ_pE::zero());
-        b_y_4.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_y_5;
-        b_y_5.append(galloisOne);
-        b_y_5.append(ZZ_pE::zero());
-        Vec<ZZ_pE> b_y_6;
-        b_y_6.append(ZZ_pE::zero());
-        b_y_6.append(galloisOne);
+        Gate kthMultGate =  circuit.gates[k];
 
-        interpolate(V(1), a, b_v_1);
-        interpolate(V(2), a, b_v_2);
-        interpolate(V(3), a, b_v_3);
-        interpolate(V(4), a, b_v_4);
-        interpolate(V(5), a, b_v_5);
-        interpolate(V(6), a, b_v_6);
-
-        interpolate(W(1), a, b_w_1);
-        interpolate(W(2), a, b_w_2);
-        interpolate(W(3), a, b_w_3);
-        interpolate(W(4), a, b_w_4);
-        interpolate(W(5), a, b_w_5);
-        interpolate(W(6), a, b_w_6);
-
-        interpolate(Y(1), a, b_y_1);
-        interpolate(Y(2), a, b_y_2);
-        interpolate(Y(3), a, b_y_3);
-        interpolate(Y(4), a, b_y_4);
-        interpolate(Y(5), a, b_y_5);
-        interpolate(Y(6), a, b_y_6);
+        int nextLeftInput = 0;
+        int nextRightInput = 0;
+        vector<long> leftInputs = kthMultGate.leftInputs;
+        vector<long> rightInputs = kthMultGate.rightInputs;
+        for (int j = 0; j < circuit.numberOfWires; j++) {
+            if (j == k + circuit.numberOfInputWires) {
+                y_values[j].append(galloisOne);
+            } else {
+                y_values[j].append(ZZ_pE::zero());
+            }
+            
+            if (nextLeftInput < leftInputs.size() && j == leftInputs[nextLeftInput]) {
+                v_values[j].append(galloisOne);
+                nextLeftInput++;
+            } else {
+                v_values[j].append(ZZ_pE::zero());
+            }
+            
+            if (nextRightInput < rightInputs.size() && j == rightInputs[nextRightInput]) {
+                w_values[j].append(galloisOne);
+                nextRightInput++;
+            } else {
+                w_values[j].append(ZZ_pE::zero());
+            }
+        }
     }
+
+    for (int k = 0; k < circuit.numberOfWires; k++) {
+        interpolate(V[k], multWires, v_values[k]);
+        interpolate(W[k], multWires, w_values[k]);
+        interpolate(Y[k], multWires, y_values[k]);
+        
+    }
+    
     
     QRP qrp;
     qrp.circuit = circuit;

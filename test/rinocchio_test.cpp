@@ -37,6 +37,20 @@ int main() {
     circuit.numberOfMidWires = 1;
     circuit.numberOfOutputWires = 1;
     circuit.numberOfMultiplicationGates = 2;
+    Gate g4;
+    g4.leftInputs = vector<long>();
+    g4.leftInputs.push_back(2);
+    g4.rightInputs = vector<long>();
+    g4.rightInputs.push_back(3);
+    Gate g5;
+    g5.leftInputs = vector<long>();
+    g5.leftInputs.push_back(0);
+    g5.leftInputs.push_back(1);
+    g5.rightInputs = vector<long>();
+    g5.rightInputs.push_back(4);
+    circuit.gates = vector<Gate>();
+    circuit.gates.push_back(g4);
+    circuit.gates.push_back(g5);
 
     QRP qrp = getQRP(circuit);
     secretState state = setup();
