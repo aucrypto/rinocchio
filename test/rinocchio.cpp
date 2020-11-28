@@ -247,8 +247,12 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
     
     ZZ_pE hOfS = D(pi.hOfS);
     ZZ_pE alphaHOfS = D(pi.alphaHOfS);
+    if (secret.alpha * hOfS != alphaHOfS) {
+        cout << "\n";
+        return false;
+    }
 
-
+    // todo compute P_io
 
     return  true;
 }
