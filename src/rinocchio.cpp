@@ -46,7 +46,7 @@ CRS getCRS(QRP prog, secretState ss) {
     {
         ZZ_pE acc;
         set(acc);
-        for (int i = 0; i < ZZ_pE::degree(); i++) {//todo == d?
+        for (int i = 0; i <= prog.circuit.numberOfMultiplicationGates; i++) {//todo == d?
             ZZ_pE ithPower = ZZ_pE(acc);
             powersOfS.append(E(ithPower));
 
@@ -58,7 +58,7 @@ CRS getCRS(QRP prog, secretState ss) {
         }
     }
 
-    long sizeOfImid = prog.numberOfWires - prog.numberOfInputWires - prog.numberOfOutputWires;
+    long sizeOfImid = prog.circuit.numberOfMidWires;
     Vec<Vec<ZZ>> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
     rvVofS.SetLength(sizeOfImid);
     rwWofS.SetLength(sizeOfImid);
@@ -73,9 +73,9 @@ CRS getCRS(QRP prog, secretState ss) {
         //{E(r_w * w_k(S))}_k\in I_mid
         //{E(r_y * y_k(S))}_k\in I_mid
         ZZ_pE rvVkofS, rwWkofS, ryYkofS;
-        eval(rvVkofS, prog.V[k+prog.numberOfInputWires], ss.s);
-        eval(rwWkofS, prog.W[k+prog.numberOfInputWires], ss.s);
-        eval(ryYkofS, prog.Y[k+prog.numberOfInputWires], ss.s);
+        eval(rvVkofS, prog.V[k+prog.midOffset], ss.s);
+        eval(rwWkofS, prog.W[k+prog.midOffset], ss.s);
+        eval(ryYkofS, prog.Y[k+prog.midOffset], ss.s);
         mul(rvVkofS, rvVkofS, ss.r_v);
         mul(rwWkofS, rwWkofS, ss.r_w);
         mul(ryYkofS, ryYkofS, ss.r_y);
@@ -114,23 +114,13 @@ CRS getCRS(QRP prog, secretState ss) {
     return crs;
 }
 
-Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
-    Vec<ZZ_p> allWireValues = input;
-    //Compute values for all multiplication gates:
-    ZZ_p c_5, c_6;//todo generalize using circuit representation
-    
-    c_5 = input(3) * input(4);
-    allWireValues.append(c_5);
-    cout << c_5 << " should be 6\n";
+Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
 
-    c_6 = c_5 * (input(1) + input(2));
-    allWireValues.append(c_6);
-    cout << c_6 << " should be 42\n";
 
     // Compute p = V*W-Y
     // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
     ZZ_pEX V, W, Y;
-    for (int k = 0; k < prog.numberOfWires; k++) {
+    for (int k = 0; k < prog.circuit.numberOfWires; k++) {
         V += allWireValues[k] * prog.V[k];
         W += allWireValues[k] * prog.W[k];
         Y += allWireValues[k] * prog.Y[k];
@@ -148,37 +138,49 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     // E(r_y * Ymid(S))
     // E(r_y * Ymid(S) * alpha_y)
     // E(beta( (r_v * Vmid(S)) + (r_w * Wmid(S)) +(r_y * Ymid(S)) ))
+    Vec<ZZ> rvVmidOfS;
+    Vec<ZZ> rwWmidOfS;
+    Vec<ZZ> ryYmidOfS;
+    Vec<ZZ> alphaVrvVmidOfS;
+    Vec<ZZ> alphaWrwWmidOfS;
+    Vec<ZZ> alphaYryYmidOfS;
+    Vec<ZZ> betaSum;
+    rvVmidOfS.SetLength(ZZ_pE::degree());
+    rwWmidOfS.SetLength(ZZ_pE::degree());
+    ryYmidOfS.SetLength(ZZ_pE::degree());
+    alphaVrvVmidOfS.SetLength(ZZ_pE::degree());
+    alphaWrwWmidOfS.SetLength(ZZ_pE::degree());
+    alphaYryYmidOfS.SetLength(ZZ_pE::degree());
+    betaSum.SetLength(ZZ_pE::degree());
+    for (int k = prog.midOffset; k < prog.outOffset; k++) {
+        rvVmidOfS += rep(allWireValues[k]) * crs.rvVofS[k - prog.midOffset];
+        rwWmidOfS += rep(allWireValues[k]) * crs.rwWofS[k - prog.midOffset];
+        ryYmidOfS += rep(allWireValues[k]) * crs.ryYofS[k - prog.midOffset];
+        alphaVrvVmidOfS += rep(allWireValues[k]) * crs.alpharvVofS[k - prog.midOffset];
+        alphaWrwWmidOfS += rep(allWireValues[k]) * crs.alpharwWofS[k - prog.midOffset];
+        alphaYryYmidOfS += rep(allWireValues[k]) * crs.alpharyYofS[k - prog.midOffset];
+        betaSum += rep(allWireValues[k]) * crs.betaSums[k - prog.midOffset];
 
-    // for now the Vec's in the crs only contain one element:
-    Vec<ZZ> rvVmidOfS = rep(c_5) * crs.rvVofS[0];
-    Vec<ZZ> rwWmidOfS = rep(c_5) * crs.rwWofS[0];
-    Vec<ZZ> ryYmidOfS = rep(c_5) * crs.ryYofS[0];
-    Vec<ZZ> alphaVrvVmidOfS = rep(c_5) * crs.alpharvVofS[0];
-    Vec<ZZ> alphaWrwWmidOfS = rep(c_5) * crs.alpharwWofS[0];
-    Vec<ZZ> alphaYryYmidOfS = rep(c_5) * crs.alpharyYofS[0];
-    Vec<ZZ> betaSum = rep(c_5) * crs.betaSums[0];
+    }
 
     // E(h(s))
     // E(alpha * h(s))
-
-    // todo: `evaluate' h(S) by mutiplying powers of S by coefficients of h
-    // todo: `evaluate' alpha*h(S) by mutiplying powers of alpha*S by coefficients of h
     ZZX hOfS, alphaHofS;
     Vec<ZZ> mod = to_vec_ZZ(ZZ_pE::modulus().f.rep);
     ZZX modX = to_ZZX(mod);
-    for (int i = 0 ; i < ZZ_pE::degree(); i++) {//todo d + 1?
-        Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep);// todo don't use the actual encryption
-        // I guess we need to multiply them as polynomials? Use ZZX?
-        ZZX ithCoeffOfHX, ithPowerOfSX, alphaIthPowerOfSX; //todo only makes sense if ciphertexts are "straightforwardly" multiplied together..
+    for (int i = 0 ; i <= deg(H); i++) {
+        //todo How do we know that the degree of H is at most the number of multiplication gates?
+        Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep);
+        ZZX ithCoeffOfHX, ithPowerOfSX, alphaIthPowerOfSX;
         ithCoeffOfHX = to_ZZX(ithCoeffOfH);
         ithPowerOfSX = to_ZZX(crs.powersOfS[i]);
         alphaIthPowerOfSX = to_ZZX(crs.powersOfSMultAlpha[i]);
         ZZX ithTermOfHSX = (ithCoeffOfHX * ithPowerOfSX) % modX;
         ZZX ithTermOfalphaHSX = (ithCoeffOfHX * alphaIthPowerOfSX) % modX;
         hOfS += ithTermOfHSX;
-        alphaHofS += ithTermOfalphaHSX;//todo check
+        alphaHofS += ithTermOfalphaHSX;
     }
-    hOfS %= modX;
+    hOfS %= modX;//todo do more reductions
     alphaHofS %= modX;
 
     return Proof{
@@ -238,10 +240,9 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
     }
     // compute P_out
     for (int k = 0; k < output.length(); k++) {
-        cout << k+qrp.numberOfWires - qrp.numberOfOutputWires << " should be 5\n";
-        v_io += output[k] * eval(qrp.V[k+qrp.numberOfWires - qrp.numberOfOutputWires], secret.s);
-        w_io += output[k] * eval(qrp.W[k+qrp.numberOfWires - qrp.numberOfOutputWires], secret.s);
-        y_io += output[k] * eval(qrp.Y[k+qrp.numberOfWires - qrp.numberOfOutputWires], secret.s);
+        v_io += output[k] * eval(qrp.V[k+qrp.outOffset], secret.s);
+        w_io += output[k] * eval(qrp.W[k+qrp.outOffset], secret.s);
+        y_io += output[k] * eval(qrp.Y[k+qrp.outOffset], secret.s);
     }
 
     //todo we cannot divide by r_v, r_w, and r_y because of the inv bug, but we have r_y = r_v * r_w

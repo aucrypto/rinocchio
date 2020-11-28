@@ -1,27 +1,17 @@
 #include<qrp.h>
 #include<gr.h>
 #include<NTL/ZZ_pE.h>
+#include<NTL/ZZX.h>
 
 using namespace NTL;
+using namespace std;
 
-QRP getQRP() {
+QRP getQRP(Circuit circuit) {
     //Pick distinct elements of exceptional set for each gate:
     ZZ_pE g_1, g_2;
     g_1 = indexedElementInExceptionalSet(1);
     g_2 = indexedElementInExceptionalSet(2);
     ZZ_pE diff = g_1 - g_2;
-    // cout << "g_1" << g_1 << "\n";
-    // cout << "g_2" << g_2 << "\n";
-    // cout << "g_1-g_2" << diff << "\n";
-    // cout << "g_2-g_1" << -diff << "\n";
-    // // cout << "lead coeff g_1-g_2: " << LeadCoeff(rep(diff)) << "\n";
-    // // cout << "lead coeff g_2-g_1: " << LeadCoeff(rep(-diff)) << "\n";
-    // inv(diff);
-    // cout << "g_1-g_2 passed\n";
-    // inv(-diff);
-    // cout << "g_2-g_1 passed\n";
-
-
 
     // Compute t(x) = (x - g_1) * (x - g_2)
     Vec<ZZ_pEX> V, W, Y;
@@ -34,15 +24,7 @@ QRP getQRP() {
         ZZ_pEX x;
         SetX(x);
         t = (x - g_1)*(x-g_2);
-        // cout << "g_1" << g_1 << "\n";
-        // cout << "g_2" << g_2 << "\n";
-        // cout << "x" << x << "\n";
-        // cout << "t" << t << "\n";    
-        // cout << "t(g_1)" << eval(t, g_1) << "\n";    
-        // cout << "t(g_2)" << eval(t, g_2) << "\n";    
-        // cout << "t(g_2+g_1)" << eval(t, g_2+g_1) << "\n";    
 
-        // ZZ_pE galloisOne = conv<ZZ_pE>(1);
         ZZ_pE galloisOne;
         set(galloisOne);
 
@@ -127,10 +109,9 @@ QRP getQRP() {
     }
     
     QRP qrp;
-    qrp.numberOfWires = 6;
-    qrp.numberOfInputWires = 4;
-    qrp.numberOfOutputWires = 1;
-    
+    qrp.circuit = circuit;
+    qrp.midOffset = circuit.numberOfInputWires;
+    qrp.outOffset = circuit.numberOfWires - circuit.numberOfOutputWires;
     qrp.t  = t;
     qrp.V = V;
     qrp.W = W;

@@ -8,11 +8,17 @@ test: joye_libert
 run: rinocchio
 	./$(OUTDIR)/rinocchio
 
+runinv: invertible
+	./$(OUTDIR)/invertible
+
 joye_libert: | out
 	g++ -O2 -std=c++11 -I./include test/joye_libert_test.cpp src/*.cpp -o $(OUTDIR)/jltest -pthread -lntl -lgmp -lm
 
 rinocchio: | out
 	g++ -O2 -std=c++11 -I./include test/rinocchio_test.cpp src/*.cpp -o $(OUTDIR)/rinocchio -pthread -lntl -lgmp -lm
+
+invertible: | out
+	g++ -O2 -std=c++11 -I./include test/invertible_test.cpp src/*.cpp -o $(OUTDIR)/invertible -pthread -lntl -lgmp -lm
 
 out:
 	mkdir -p $(OUTDIR)
