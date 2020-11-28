@@ -1,14 +1,24 @@
-.PHONY: run
+OUTDIR = out
 
-build: jl rinocchio
+build: joye_libert rinocchio
 
-jl:
-	g++ -O2 -std=c++11 src/main.cpp src/joy_libert.cpp -o out/main -pthread -lntl -lgmp -lm
+test: joye_libert
+	./$(OUTDIR)/jltest
 
-rinocchio:
-	g++ -O2 -std=c++11 src/rinocchio.cpp src/joy_libert.cpp -o out/rinocchio -pthread -lntl -lgmp -lm
+run: rinocchio
+	./$(OUTDIR)/rinocchio
 
-run-setup:
-	./out/rinocchio
+runinv: invertible
+	./$(OUTDIR)/invertible
 
-test: rinocchio run-setup
+joye_libert: | out
+	g++ -O2 -std=c++11 -I./include test/joye_libert_test.cpp src/*.cpp -o $(OUTDIR)/jltest -pthread -lntl -lgmp -lm
+
+rinocchio: | out
+	g++ -O2 -std=c++11 -I./include test/rinocchio_test.cpp src/*.cpp -o $(OUTDIR)/rinocchio -pthread -lntl -lgmp -lm
+
+invertible: | out
+	g++ -O2 -std=c++11 -I./include test/invertible_test.cpp src/*.cpp -o $(OUTDIR)/invertible -pthread -lntl -lgmp -lm
+
+out:
+	mkdir -p $(OUTDIR)
