@@ -17,14 +17,23 @@ using namespace NTL;
 //dummy encryption:
 Vec<ZZ> E(ZZ_pE x) {
     Vec<ZZ> res;
-    ZZ_pX polynomialRep = rep(x);
+    // res = to_vec_ZZ(rep(x).rep);
     for (int i = 0; i < ZZ_pE::degree(); i++) {
         ZZ_p coeff;
-        GetCoeff(coeff, polynomialRep, i);//returns 0 if i out of range.
+        GetCoeff(coeff, rep(x), i);//returns 0 if i out of range.
         //Todo actually encrypt the coefficient under the ith pulic key.
         res.append(rep(coeff));
     }
     return res;
+}
+
+// dummy decryption
+ZZ_pE D(Vec<ZZ> y) {
+    ZZ_pX x;
+    for (int i = 0; i < y.length(); i++) {
+        SetCoeff(x, i, conv<ZZ_p>(y[i]));
+    }
+    return conv<ZZ_pE>(x);
 }
 
 struct CRS {
@@ -99,7 +108,7 @@ CRS getCRS(QRP prog, secretState ss) {
 
         //{E(beta ((r_v * v_k(S)) + (r_w * w_k(S)) + (r_y * y_k(S)))}_k\in I_mid
         ZZ_pE kthBetaSum;
-        kthBetaSum = ss.beta * (alpharvVkofS + alpharwWkofS + alpharyYkofS);
+        kthBetaSum = ss.beta * (rvVkofS + rwWkofS + ryYkofS);
         betaSums[k] = E(kthBetaSum);
     }
     //pk
@@ -168,9 +177,9 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     Vec<ZZ> rvVmidOfS = rep(c_5) * crs.rvVofS[0];
     Vec<ZZ> rwWmidOfS = rep(c_5) * crs.rwWofS[0];
     Vec<ZZ> ryYmidOfS = rep(c_5) * crs.ryYofS[0];
-    Vec<ZZ> alphavrvVmidOfS = rep(c_5) * crs.alpharvVofS[0];
-    Vec<ZZ> alphawrwWmidOfS = rep(c_5) * crs.alpharwWofS[0];
-    Vec<ZZ> alphayryYmidOfS = rep(c_5) * crs.alpharyYofS[0];
+    Vec<ZZ> alphaVrvVmidOfS = rep(c_5) * crs.alpharvVofS[0];
+    Vec<ZZ> alphaWrwWmidOfS = rep(c_5) * crs.alpharwWofS[0];
+    Vec<ZZ> alphaYryYmidOfS = rep(c_5) * crs.alpharyYofS[0];
     Vec<ZZ> betaSum = rep(c_5) * crs.betaSums[0];
 
     // E(h(s))
@@ -182,7 +191,7 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
     Vec<ZZ> mod = to_vec_ZZ(ZZ_pE::modulus().f.rep);
     ZZX modX = to_ZZX(mod);
     for (int i = 0 ; i < ZZ_pE::degree(); i++) {//todo d + 1?
-        Vec<ZZ> ithCoeffOfH = E(coeff(H, i));// todo don't use the actual encryption
+        Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep);// todo don't use the actual encryption
         // I guess we need to multiply them as polynomials? Use ZZX?
         ZZX ithCoeffOfHX, ithPowerOfSX, alphaIthPowerOfSX; //todo only makes sense if ciphertexts are "straightforwardly" multiplied together..
         ithCoeffOfHX = to_ZZX(ithCoeffOfH);
@@ -200,13 +209,48 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input) {
         .rvVmidOfS = rvVmidOfS,
         .rwWmidOfS = rwWmidOfS,
         .ryYmidOfS  =ryYmidOfS,
-        .alphaVrvVmidOfS = alphavrvVmidOfS,
-        .alphaWrwWmidOfS = alphawrwWmidOfS,
-        .alphaYryYmidOfS = alphayryYmidOfS,
+        .alphaVrvVmidOfS = alphaVrvVmidOfS,
+        .alphaWrwWmidOfS = alphaWrwWmidOfS,
+        .alphaYryYmidOfS = alphaYryYmidOfS,
         .betaSum = betaSum,
         .hOfS = hOfS.rep,
         .alphaHOfS = alphaHofS.rep,
     };
+}
+
+bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec<ZZ_p> output) {
+    ZZ_pE rvVmidOfS = D(pi.rvVmidOfS);
+    ZZ_pE rwWmidOfS = D(pi.rwWmidOfS);
+    ZZ_pE ryYmidOfS = D(pi.ryYmidOfS);
+    ZZ_pE alphavrvVmidOfS = D(pi.alphaVrvVmidOfS);
+    ZZ_pE alphawrwWmidOfS = D(pi.alphaWrwWmidOfS);
+    ZZ_pE alphayryYmidOfS = D(pi.alphaYryYmidOfS);
+    if (secret.alpha_v * rvVmidOfS != alphavrvVmidOfS) {
+        cout << "alpha_v * r_v * v_mid(S) != \n";
+        return false;
+    }
+    if (secret.alpha_w * rwWmidOfS != alphawrwWmidOfS) {
+        cout << "alpha_w * r_w * w_mid(S) != \n";
+        return false;
+    }
+    if (secret.alpha_y * ryYmidOfS != alphayryYmidOfS) {
+        cout << "alpha_y * r_y * y_mid(S) != \n";
+        return false;
+    }
+    ZZ_pE betaSum = D(pi.betaSum);
+    ZZ_pE computedBetaSum = secret.beta * (rvVmidOfS + rwWmidOfS + ryYmidOfS);
+
+    if (computedBetaSum != betaSum) {
+        cout << secret.beta << "L != \n";
+        return false;
+    }
+    
+    ZZ_pE hOfS = D(pi.hOfS);
+    ZZ_pE alphaHOfS = D(pi.alphaHOfS);
+
+
+
+    return  true;
 }
 
 int main() {
@@ -234,4 +278,9 @@ int main() {
     input.append(ZZ_p(2));
     input.append(ZZ_p(3));
     Proof pi = prove(qrp, crs, input);
+
+    Vec<ZZ_p> output;
+    output.append(ZZ_p(42));
+
+    cout << verify(qrp, state, crs, pi, input, output) << "\n";
 }
