@@ -245,15 +245,14 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
     }
 
     //todo we cannot divide by r_v, r_w, and r_y because of the inv bug, but we have r_y = r_v * r_w
-    ZZ_pE computedV = v_io + rvVmidOfS;
-    ZZ_pE computedW = w_io + rwWmidOfS;
-    ZZ_pE computedY = y_io + ryYmidOfS;
+    ZZ_pE computedV = secret.r_v * v_io + rvVmidOfS;
+    ZZ_pE computedW = secret.r_w * w_io + rwWmidOfS;
+    ZZ_pE computedY = secret.r_y * y_io + ryYmidOfS;
 
     ZZ_pE computedP = computedV * computedW - computedY;
     ZZ_pE hMultT = hOfS * eval(qrp.t, secret.s);
-    if (computedP != hMultT) {
+    if (computedP != secret.r_y * hMultT) {
         cout << computedP << "\n";
-        cout << hMultT << "\n";
         return false;
     }
 
