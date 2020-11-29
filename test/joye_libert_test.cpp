@@ -135,7 +135,7 @@ int main() {
         ZZ_pE m1 = random_ZZ_pE();
         ZZ_pE m2 = random_ZZ_pE();
         ZZ_pE m3 = random_ZZ_pE();
-        JLEncodingKey key = gen_jl_encoding_key(l, k, 4);
+        JLEncodingKey key = gen_jl_encoding_key(l, k);
         JLEncoding encoded1 = encode(m1, key);
         JLEncoding encoded2 = encode(m2, key);
         JLEncoding encoded3 = encode(m3, key);
@@ -145,15 +145,23 @@ int main() {
         // cout << "decoded: " << decoded << "\n";
         assert (m1 == decoded);
 
+        JLEncoding encoded12prod = jle_mult(encoded1, to_vec_ZZ(rep(m2).rep), key);
+        decoded = decode(encoded12prod, key);
+        cout << decoded << "\n";
+        cout << m1 * m2 << "\n";
+        cout << ZZ_pE(m1 * m2) << "\n";
+        assert (decoded == (m1 * m2));
+
         jle_add_assign(encoded1, encoded2, key);
         jle_add_assign(encoded1, encoded3, key);
         decoded = decode(encoded1, key);
         assert (decoded == (m1 + m2 + m3));
         
         ZZ scalar = ZZ(1231314);
-        jle_mult_assign(encoded2, scalar, key);
+        jle_scalar_mult_assign(encoded2, scalar, key);
         decoded = decode(encoded2, key);
         assert (decoded == (conv<ZZ_pE>(scalar) * m2));
+
     }
 
     cout << "\nPassed all tests!\n";

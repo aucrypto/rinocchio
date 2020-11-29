@@ -11,6 +11,7 @@
 #include <qrp.h>
 #include <setup.h>
 #include <rinocchio.h>
+#include <joye_libert.h>
 
 using namespace std;
 using namespace NTL;
@@ -58,8 +59,9 @@ CRS getCRS(QRP prog, secretState ss) {
         }
     }
 
+
     long sizeOfImid = prog.circuit.numberOfMidWires;
-    Vec<Vec<ZZ>> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
+    Vec<JLEncoding> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
     rvVofS.SetLength(sizeOfImid);
     rwWofS.SetLength(sizeOfImid);
     ryYofS.SetLength(sizeOfImid);
@@ -79,9 +81,9 @@ CRS getCRS(QRP prog, secretState ss) {
         mul(rvVkofS, rvVkofS, ss.r_v);
         mul(rwWkofS, rwWkofS, ss.r_w);
         mul(ryYkofS, ryYkofS, ss.r_y);
-        rvVofS[k] = E(rvVkofS);
-        rwWofS[k] = E(rwWkofS);
-        ryYofS[k] = E(ryYkofS);
+        rvVofS[k] = encode(rvVkofS, ss.secretKey);
+        rwWofS[k] = encode(rwWkofS, ss.secretKey);
+        ryYofS[k] = encode(ryYkofS, ss.secretKey);
             
         //{E(alpha_v * r_v * v_k(S))}_k\in I_mid
         //{E(alpha_w * r_w * w_k(S))}_k\in I_mid
@@ -90,14 +92,14 @@ CRS getCRS(QRP prog, secretState ss) {
         mul(alpharvVkofS, rvVkofS, ss.alpha_v);
         mul(alpharwWkofS, rwWkofS, ss.alpha_w);
         mul(alpharyYkofS, ryYkofS, ss.alpha_y);
-        alpharvVofS[k] = E(alpharvVkofS);
-        alpharwWofS[k] = E(alpharwWkofS);
-        alpharyYofS[k] = E(alpharyYkofS);
+        alpharvVofS[k] = encode(alpharvVkofS, ss.secretKey);
+        alpharwWofS[k] = encode(alpharwWkofS, ss.secretKey);
+        alpharyYofS[k] = encode(alpharyYkofS, ss.secretKey);
 
         //{E(beta ((r_v * v_k(S)) + (r_w * w_k(S)) + (r_y * y_k(S)))}_k\in I_mid
         ZZ_pE kthBetaSum;
         kthBetaSum = ss.beta * (rvVkofS + rwWkofS + ryYkofS);
-        betaSums[k] = E(kthBetaSum);
+        betaSums[k] = encode(kthBetaSum, ss.secretKey);
     }
     //pk
 
@@ -111,7 +113,56 @@ CRS getCRS(QRP prog, secretState ss) {
     crs.betaSums = betaSums;
     crs.powersOfS = powersOfS;
     crs.powersOfSMultAlpha = powersOfSMultAlpha;
+    crs.publicKey = ss.secretKey;//todo separate
     return crs;
+}
+
+Vec<ZZ> vecadd(const Vec<ZZ>& a, const Vec<ZZ>& b) {
+    Vec<ZZ> res;
+    if (a.length() < b.length()) {
+        res = Vec<ZZ>(b);
+        for (int i = 0; i < a.length(); i++) {
+            res[i] += a[i];
+        }
+    } else {
+        res = Vec<ZZ>(a);
+        for (int i = 0; i < b.length(); i++) {
+            res[i] += b[i];
+        }
+    }
+    return res;
+}
+
+Vec<ZZ> PlainMulNew(const Vec<ZZ>& a, const Vec<ZZ>& b) {
+    Vec<ZZ> res;
+    long da = a.length() - 1;
+    long db = b.length() - 1;
+    long d = da+db;
+    res.SetLength(d + 1); //todo lengths - 1
+
+
+
+    const ZZ *ap, *bp;
+
+    ap = a.elts();
+    bp = b.elts();
+
+    ZZ *resp = res.elts();
+
+    long i, j, jmin, jmax;
+    ZZ t, acc;
+
+    for (i = 0; i <= d; i++) {
+        jmin = max(0, i-db);
+        jmax = min(da, i);
+        clear(acc);
+        for (j = jmin; j <= jmax; j++) {
+            mul(t, ap[j], bp[i-j]);
+            add(acc, acc, t);
+        }
+        resp[i] = acc;
+    }
+    return res;
 }
 
 Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
@@ -138,50 +189,52 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
     // E(r_y * Ymid(S))
     // E(r_y * Ymid(S) * alpha_y)
     // E(beta( (r_v * Vmid(S)) + (r_w * Wmid(S)) +(r_y * Ymid(S)) ))
-    Vec<ZZ> rvVmidOfS;
-    Vec<ZZ> rwWmidOfS;
-    Vec<ZZ> ryYmidOfS;
-    Vec<ZZ> alphaVrvVmidOfS;
-    Vec<ZZ> alphaWrwWmidOfS;
-    Vec<ZZ> alphaYryYmidOfS;
-    Vec<ZZ> betaSum;
-    rvVmidOfS.SetLength(ZZ_pE::degree());
-    rwWmidOfS.SetLength(ZZ_pE::degree());
-    ryYmidOfS.SetLength(ZZ_pE::degree());
-    alphaVrvVmidOfS.SetLength(ZZ_pE::degree());
-    alphaWrwWmidOfS.SetLength(ZZ_pE::degree());
-    alphaYryYmidOfS.SetLength(ZZ_pE::degree());
-    betaSum.SetLength(ZZ_pE::degree());
+    JLEncoding rvVmidOfS;
+    JLEncoding rwWmidOfS;
+    JLEncoding ryYmidOfS;
+    JLEncoding alphaVrvVmidOfS;
+    JLEncoding alphaWrwWmidOfS;
+    JLEncoding alphaYryYmidOfS;
+    JLEncoding betaSum;
     for (int k = prog.midOffset; k < prog.outOffset; k++) {
-        rvVmidOfS += rep(allWireValues[k]) * crs.rvVofS[k - prog.midOffset];
-        rwWmidOfS += rep(allWireValues[k]) * crs.rwWofS[k - prog.midOffset];
-        ryYmidOfS += rep(allWireValues[k]) * crs.ryYofS[k - prog.midOffset];
-        alphaVrvVmidOfS += rep(allWireValues[k]) * crs.alpharvVofS[k - prog.midOffset];
-        alphaWrwWmidOfS += rep(allWireValues[k]) * crs.alpharwWofS[k - prog.midOffset];
-        alphaYryYmidOfS += rep(allWireValues[k]) * crs.alpharyYofS[k - prog.midOffset];
-        betaSum += rep(allWireValues[k]) * crs.betaSums[k - prog.midOffset];
+        //Scalar multiplications
+        JLEncoding tmp;
+        tmp = jle_scalar_mult(crs.rvVofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        jle_add_assign(rvVmidOfS, tmp, crs.publicKey);
+        tmp = jle_scalar_mult(crs.rwWofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        jle_add_assign(rwWmidOfS, tmp, crs.publicKey);
+        tmp = jle_scalar_mult(crs.ryYofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        jle_add_assign(ryYmidOfS, tmp, crs.publicKey);
+        // rvVmidOfS += rep(allWireValues[k]) * crs.rvVofS[k - prog.midOffset];
+        // rwWmidOfS += rep(allWireValues[k]) * crs.rwWofS[k - prog.midOffset];
+        // ryYmidOfS += rep(allWireValues[k]) * crs.ryYofS[k - prog.midOffset];
+        tmp = jle_scalar_mult(crs.alpharvVofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        jle_add_assign(alphaVrvVmidOfS, tmp, crs.publicKey);
+        tmp = jle_scalar_mult(crs.alpharwWofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        jle_add_assign(alphaWrwWmidOfS, tmp, crs.publicKey);
+        tmp = jle_scalar_mult(crs.alpharyYofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        jle_add_assign(alphaYryYmidOfS, tmp, crs.publicKey);
+        // alphaVrvVmidOfS += rep(allWireValues[k]) * crs.alpharvVofS[k - prog.midOffset];
+        // alphaWrwWmidOfS += rep(allWireValues[k]) * crs.alpharwWofS[k - prog.midOffset];
+        // alphaYryYmidOfS += rep(allWireValues[k]) * crs.alpharyYofS[k - prog.midOffset];
+        tmp = jle_scalar_mult(crs.betaSums[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        jle_add_assign(betaSum, tmp, crs.publicKey);
+        // betaSum += rep(allWireValues[k]) * crs.betaSums[k - prog.midOffset];
 
     }
 
     // E(h(s))
     // E(alpha * h(s))
-    ZZX hOfS, alphaHofS;
-    Vec<ZZ> mod = to_vec_ZZ(ZZ_pE::modulus().f.rep);
-    ZZX modX = to_ZZX(mod);
+    Vec<ZZ> vec_hOfS, vec_alphaHofS;
     for (int i = 0 ; i <= deg(H); i++) {
+        //Multiplications of polynomials
         //todo How do we know that the degree of H is at most the number of multiplication gates?
         Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep);
-        ZZX ithCoeffOfHX, ithPowerOfSX, alphaIthPowerOfSX;
-        ithCoeffOfHX = to_ZZX(ithCoeffOfH);
-        ithPowerOfSX = to_ZZX(crs.powersOfS[i]);
-        alphaIthPowerOfSX = to_ZZX(crs.powersOfSMultAlpha[i]);
-        ZZX ithTermOfHSX = (ithCoeffOfHX * ithPowerOfSX) % modX;
-        ZZX ithTermOfalphaHSX = (ithCoeffOfHX * alphaIthPowerOfSX) % modX;
-        hOfS += ithTermOfHSX;
-        alphaHofS += ithTermOfalphaHSX;
+        Vec<ZZ> ihs = PlainMulNew(ithCoeffOfH, crs.powersOfS[i]);
+        Vec<ZZ> iahs = PlainMulNew(ithCoeffOfH, crs.powersOfSMultAlpha[i]);
+        vec_hOfS = vecadd(vec_hOfS, ihs);
+        vec_alphaHofS = vecadd(vec_alphaHofS, iahs);
     }
-    hOfS %= modX;//todo do more reductions
-    alphaHofS %= modX;
 
     return Proof{
         .rvVmidOfS = rvVmidOfS,
@@ -191,18 +244,18 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
         .alphaWrwWmidOfS = alphaWrwWmidOfS,
         .alphaYryYmidOfS = alphaYryYmidOfS,
         .betaSum = betaSum,
-        .hOfS = hOfS.rep,
-        .alphaHOfS = alphaHofS.rep,
+        .hOfS = vec_hOfS,
+        .alphaHOfS = vec_alphaHofS,
     };
 }
 
 bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec<ZZ_p> output) {
-    ZZ_pE rvVmidOfS = D(pi.rvVmidOfS);
-    ZZ_pE rwWmidOfS = D(pi.rwWmidOfS);
-    ZZ_pE ryYmidOfS = D(pi.ryYmidOfS);
-    ZZ_pE alphavrvVmidOfS = D(pi.alphaVrvVmidOfS);
-    ZZ_pE alphawrwWmidOfS = D(pi.alphaWrwWmidOfS);
-    ZZ_pE alphayryYmidOfS = D(pi.alphaYryYmidOfS);
+    ZZ_pE rvVmidOfS = decode(pi.rvVmidOfS, secret.secretKey);
+    ZZ_pE rwWmidOfS = decode(pi.rwWmidOfS, secret.secretKey);
+    ZZ_pE ryYmidOfS = decode(pi.ryYmidOfS, secret.secretKey);
+    ZZ_pE alphavrvVmidOfS = decode(pi.alphaVrvVmidOfS, secret.secretKey);
+    ZZ_pE alphawrwWmidOfS = decode(pi.alphaWrwWmidOfS, secret.secretKey);
+    ZZ_pE alphayryYmidOfS = decode(pi.alphaYryYmidOfS, secret.secretKey);
     if (secret.alpha_v * rvVmidOfS != alphavrvVmidOfS) {
         cout << "alpha_v * r_v * v_mid(S) != \n";
         return false;
@@ -215,11 +268,11 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
         cout << "alpha_y * r_y * y_mid(S) != \n";
         return false;
     }
-    ZZ_pE betaSum = D(pi.betaSum);
+    ZZ_pE betaSum = decode(pi.betaSum, secret.secretKey);
     ZZ_pE computedBetaSum = secret.beta * (rvVmidOfS + rwWmidOfS + ryYmidOfS);
 
     if (computedBetaSum != betaSum) {
-        cout << secret.beta << "L != \n";
+        cout << "beta sum \n";
         return false;
     }
     
@@ -253,7 +306,8 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
     ZZ_pE computedP = computedV * computedW - computedY;
     ZZ_pE hMultT = hOfS * eval(qrp.t, secret.s);
     if (computedP != secret.r_y * hMultT) {
-        cout << computedP << "\n";
+        cout << "compute P: " << computedP << "\n";
+        cout << "r_y * h*t: " << secret.r_y * hMultT << "\n";
         return false;
     }
 

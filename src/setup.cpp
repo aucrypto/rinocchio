@@ -1,10 +1,11 @@
 #include <setup.h>
 #include <gr.h>
+#include <joye_libert.h>
 #include <NTL/ZZ_pE.h>
 
 using namespace NTL;
 
-secretState setup() {
+secretState setup(long l, long k) {
     //Find non-zero s in exceptional set (i.e. in A^*):
     ZZ_pE s;
     s = randomNonZeroInExceptionalSet();
@@ -35,9 +36,7 @@ secretState setup() {
     ss.alpha_w = alpha_w;
     ss.alpha_y = alpha_y;
     ss.beta = beta;
-    //TODO: keypair, when joye-libert is working
-    
-    ss.secretKey = false;
+    ss.secretKey = gen_jl_encoding_key(l, k);
     
     return ss;
 }

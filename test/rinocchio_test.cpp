@@ -12,6 +12,8 @@
 #include <setup.h>
 #include <rinocchio.h>
 
+#include <assert.h>
+
 using namespace std;
 using namespace NTL;
 
@@ -53,7 +55,7 @@ int main() {
     circuit.gates.push_back(g5);
 
     QRP qrp = getQRP(circuit);
-    secretState state = setup();
+    secretState state = setup(512, 64);
     CRS crs = getCRS(qrp, state);
     Vec<ZZ_p> input;
     input.append(ZZ_p(3));
@@ -67,5 +69,5 @@ int main() {
     Vec<ZZ_p> output;
     output.append(ZZ_p(42));
 
-    cout << verify(qrp, state, crs, pi, input, output) << "\n";
+    assert (verify(qrp, state, crs, pi, input, output) == 1);
 }

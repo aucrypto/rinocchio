@@ -6,6 +6,7 @@
 
 #include<qrp.h>
 #include<setup.h>
+#include<joye_libert.h>
 
 using namespace NTL;
 
@@ -18,26 +19,26 @@ ZZ_pE D(Vec<ZZ> y);
 struct CRS {
     Vec<Vec<ZZ>> powersOfS;
     Vec<Vec<ZZ>> powersOfSMultAlpha;
-    Vec<Vec<ZZ>> rvVofS;
-    Vec<Vec<ZZ>> rwWofS;
-    Vec<Vec<ZZ>> ryYofS;
-    Vec<Vec<ZZ>> alpharvVofS;
-    Vec<Vec<ZZ>> alpharwWofS;
-    Vec<Vec<ZZ>> alpharyYofS;
-    Vec<Vec<ZZ>> betaSums; 
-    bool publicKey;
+    Vec<JLEncoding> rvVofS;
+    Vec<JLEncoding> rwWofS;
+    Vec<JLEncoding> ryYofS;
+    Vec<JLEncoding> alpharvVofS;
+    Vec<JLEncoding> alpharwWofS;
+    Vec<JLEncoding> alpharyYofS;
+    Vec<JLEncoding> betaSums; 
+    JLEncodingKey publicKey; //todo separate public/secret
 };
 
 CRS getCRS(QRP prog, secretState ss);
 
 struct Proof {
-    Vec<ZZ> rvVmidOfS;
-    Vec<ZZ> rwWmidOfS;
-    Vec<ZZ> ryYmidOfS;
-    Vec<ZZ> alphaVrvVmidOfS;
-    Vec<ZZ> alphaWrwWmidOfS;
-    Vec<ZZ> alphaYryYmidOfS;
-    Vec<ZZ> betaSum;
+    JLEncoding rvVmidOfS;
+    JLEncoding rwWmidOfS;
+    JLEncoding ryYmidOfS;
+    JLEncoding alphaVrvVmidOfS;
+    JLEncoding alphaWrwWmidOfS;
+    JLEncoding alphaYryYmidOfS;
+    JLEncoding betaSum;
     Vec<ZZ> hOfS;
     Vec<ZZ> alphaHOfS;
 };
