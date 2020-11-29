@@ -61,17 +61,7 @@ int main() {
     input.append(ZZ_p(2));
     input.append(ZZ_p(3));
 
-    Vec<ZZ_p> allWireValues = input;
-    //Compute values for all multiplication gates:
-    ZZ_p c_5, c_6;//todo generalize using circuit representation
-    
-    c_5 = input(3) * input(4);
-    allWireValues.append(c_5);
-    cout << c_5 << " should be 6\n";
-
-    c_6 = c_5 * (input(1) + input(2));
-    allWireValues.append(c_6);
-    cout << c_6 << " should be 42\n";
+    Vec<ZZ_p> allWireValues = eval(circuit, input);
     Proof pi = prove(qrp, crs, allWireValues);
 
     Vec<ZZ_p> output;

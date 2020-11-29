@@ -2,7 +2,10 @@
 #define QRP_H
 
 #include <NTL/ZZ_pEX.h>
+#include <NTL/vector.h>
 #include <vector>
+
+using namespace NTL;
 
 struct Gate {
     std::vector<long> leftInputs, rightInputs;
@@ -27,5 +30,7 @@ struct QRP {
 };
 
 QRP getQRP(Circuit circuit);
+
+Vec<ZZ_p> eval(Circuit circuit, Vec<ZZ_p> input);
 
 #endif
