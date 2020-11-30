@@ -42,18 +42,18 @@ CRS getCRS(QRP prog, secretState ss) {
     
     //{E(S^i)}_i=0^d
     //{E(alpha * S^i)}_i=0^d
-    Vec<Vec<ZZ>> powersOfS;
-    Vec<Vec<ZZ>> powersOfSMultAlpha;
+    Vec<JLEncoding> powersOfS;
+    Vec<JLEncoding> powersOfSMultAlpha;
     {
         ZZ_pE acc;
         set(acc);
         for (int i = 0; i <= prog.circuit.numberOfMultiplicationGates; i++) {//todo == d?
             ZZ_pE ithPower = ZZ_pE(acc);
-            powersOfS.append(E(ithPower));
+            powersOfS.append(encode(ithPower, ss.secretKey));
 
             ZZ_pE ithPowerMultAlpha;
             mul(ithPowerMultAlpha, ss.alpha, ithPower);
-            powersOfSMultAlpha.append(E(ithPowerMultAlpha));
+            powersOfSMultAlpha.append(encode(ithPowerMultAlpha, ss.secretKey));
             
             mul(acc, acc, ss.s);
         }
@@ -133,38 +133,6 @@ Vec<ZZ> vecadd(const Vec<ZZ>& a, const Vec<ZZ>& b) {
     return res;
 }
 
-Vec<ZZ> PlainMulNew(const Vec<ZZ>& a, const Vec<ZZ>& b) {
-    Vec<ZZ> res;
-    long da = a.length() - 1;
-    long db = b.length() - 1;
-    long d = da+db;
-    res.SetLength(d + 1); //todo lengths - 1
-
-
-
-    const ZZ *ap, *bp;
-
-    ap = a.elts();
-    bp = b.elts();
-
-    ZZ *resp = res.elts();
-
-    long i, j, jmin, jmax;
-    ZZ t, acc;
-
-    for (i = 0; i <= d; i++) {
-        jmin = max(0, i-db);
-        jmax = min(da, i);
-        clear(acc);
-        for (j = jmin; j <= jmax; j++) {
-            mul(t, ap[j], bp[i-j]);
-            add(acc, acc, t);
-        }
-        resp[i] = acc;
-    }
-    return res;
-}
-
 Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
 
 
@@ -225,15 +193,15 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
 
     // E(h(s))
     // E(alpha * h(s))
-    Vec<ZZ> vec_hOfS, vec_alphaHofS;
+    JLEncoding vec_hOfS, vec_alphaHofS;
     for (int i = 0 ; i <= deg(H); i++) {
         //Multiplications of polynomials
         //todo How do we know that the degree of H is at most the number of multiplication gates?
         Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep);
-        Vec<ZZ> ihs = PlainMulNew(ithCoeffOfH, crs.powersOfS[i]);
-        Vec<ZZ> iahs = PlainMulNew(ithCoeffOfH, crs.powersOfSMultAlpha[i]);
-        vec_hOfS = vecadd(vec_hOfS, ihs);
-        vec_alphaHofS = vecadd(vec_alphaHofS, iahs);
+        JLEncoding ihs = PlainMulEncryption(crs.powersOfS[i], ithCoeffOfH, crs.publicKey);
+        JLEncoding iahs = PlainMulEncryption(crs.powersOfSMultAlpha[i], ithCoeffOfH, crs.publicKey);
+        jle_add_assign(vec_hOfS, ihs, crs.publicKey);
+        jle_add_assign(vec_alphaHofS, iahs, crs.publicKey);
     }
 
     return Proof{
@@ -276,8 +244,8 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
         return false;
     }
     
-    ZZ_pE hOfS = D(pi.hOfS);
-    ZZ_pE alphaHOfS = D(pi.alphaHOfS);
+    ZZ_pE hOfS = decode(pi.hOfS, secret.secretKey);
+    ZZ_pE alphaHOfS = decode(pi.alphaHOfS, secret.secretKey);
     if (secret.alpha * hOfS != alphaHOfS) {
         cout << "\n";
         return false;
@@ -298,7 +266,7 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
         y_io += output[k] * eval(qrp.Y[k+qrp.outOffset], secret.s);
     }
 
-    //todo we cannot divide by r_v, r_w, and r_y because of the inv bug, but we have r_y = r_v * r_w
+    //r_y = r_v * r_w
     ZZ_pE computedV = secret.r_v * v_io + rvVmidOfS;
     ZZ_pE computedW = secret.r_w * w_io + rwWmidOfS;
     ZZ_pE computedY = secret.r_y * y_io + ryYmidOfS;

@@ -42,4 +42,6 @@ inline JLEncoding jle_scalar_mult(JLEncoding& a, const ZZ& scalar, const JLEncod
 
 JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key);
 
+JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key);
+
 #endif

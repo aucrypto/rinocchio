@@ -17,8 +17,8 @@ Vec<ZZ> E(ZZ_pE x);
 ZZ_pE D(Vec<ZZ> y);
 
 struct CRS {
-    Vec<Vec<ZZ>> powersOfS;
-    Vec<Vec<ZZ>> powersOfSMultAlpha;
+    Vec<JLEncoding> powersOfS;
+    Vec<JLEncoding> powersOfSMultAlpha;
     Vec<JLEncoding> rvVofS;
     Vec<JLEncoding> rwWofS;
     Vec<JLEncoding> ryYofS;
@@ -39,8 +39,8 @@ struct Proof {
     JLEncoding alphaWrwWmidOfS;
     JLEncoding alphaYryYmidOfS;
     JLEncoding betaSum;
-    Vec<ZZ> hOfS;
-    Vec<ZZ> alphaHOfS;
+    JLEncoding hOfS;
+    JLEncoding alphaHOfS;
 };
 
 Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input);

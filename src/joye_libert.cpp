@@ -193,3 +193,35 @@ JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& 
     }
     return JLEncoding{.coeffs = res};
 }
+
+JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key) {
+    JLEncoding res;
+    long da = a.coeffs.length() - 1;
+    long db = b.length() - 1;
+    long d = da+db;
+    res.coeffs.SetLength(d + 1); //todo lengths - 1
+
+
+
+    const ZZ *ap, *bp;
+
+    ap = a.coeffs.elts();
+    bp = b.elts();
+
+    ZZ *resp = res.coeffs.elts();
+
+    long i, j, jmin, jmax;
+    ZZ t, acc;
+
+    for (i = 0; i <= d; i++) {
+        jmin = max(0, i-db);
+        jmax = min(da, i);
+        clear(acc);
+        for (j = jmin; j <= jmax; j++) {
+            scalar_mult_encrypted(t, ap[j], bp[i-j], key.n);
+            add_encrypted(acc, acc, t, key.n);
+        }
+        resp[i] = acc;
+    }
+    return res;
+}
