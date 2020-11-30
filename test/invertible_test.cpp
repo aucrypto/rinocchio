@@ -35,10 +35,10 @@ int main() {
     g_1 = indexedElementInExceptionalSet(3);
     g_2 = indexedElementInExceptionalSet(13);
     ZZ_pE diff = g_1 - g_2;
-    cout << "g_1" << g_1 << "\n";
-    cout << "g_2" << g_2 << "\n";
-    cout << "g_1-g_2" << diff << "\n";
-    cout << "g_2-g_1" << -diff << "\n";
+    cout << "g_1: " << g_1 << "\n";
+    cout << "g_2: " << g_2 << "\n";
+    cout << "g_1-g_2: " << diff << "\n";
+    cout << "g_2-g_1: " << -diff << "\n";
 
     //   XGCD(d, x, t, a, f); // x result, a elem, f mod, d, t fresh
     // ZZ_pX dx, tx, x;
@@ -50,7 +50,6 @@ int main() {
     // cout << "lead coeff g_2-g_1: " << LeadCoeff(rep(-diff)) << "\n";
     
     {
-
         ZZX diffx = to_ZZX(rep(diff));
         ZZX q, r;
         // HomPseudoDivRem(q, r, to_ZZX(ZZ_pE::modulus()), diffx);
@@ -58,15 +57,18 @@ int main() {
         mod = to_ZZX(ZZ_pE::modulus());
         ZZ d;
         XGCD(d, inverse, t, diffx, mod, 1);
-        ZZ_pE reducedOne = to_ZZ_pE(to_ZZ_pX(inverse)) * diff;
-        ZZX one = (inverse % mod )* diffx;
-        one %= mod;
-        cout <<  conv<ZZ_p>(coeff(one, 0))  << "inverse g_1-g_2 passed\n";
-        cout <<  conv<ZZ_pX>(one)  << "inverse g_1-g_2 passed\n";
-        cout <<  reducedOne  << "inverse g_1-g_2 passed\n";
-        // inv(diff);
+        cout << "d % 2^64: " << d % modulus << "\n";
+        ZZ_p dP = to_ZZ_p(d);
+        ZZ_pX dPX = ZZ_pX();
+        SetCoeff(dPX, 0, dP);
+
+        ZZ_pX invX = to_ZZ_pX(inverse);
+        divide(invX, invX, dPX);
+        ZZ_pE actualInverse = to_ZZ_pE(invX);
+        cout << "Inverse: " << actualInverse << "\n";
+
+        ZZ_pE reducedOne = actualInverse * diff;
+        cout << "inverse * diff: " <<  reducedOne  << "\n"; 
         cout << "g_1-g_2 passed\n";
-        // inv(-diff);
-        // cout << "g_2-g_1 passed\n";
     }
 }
