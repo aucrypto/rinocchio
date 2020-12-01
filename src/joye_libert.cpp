@@ -173,6 +173,13 @@ void jle_add_assign(JLEncoding& a, const JLEncoding& b, const JLEncodingKey& key
     for (int i = 0; i < a.coeffs.length() && i < b.coeffs.length(); i++) {
         add_encrypted(a.coeffs[i], a.coeffs[i], b.coeffs[i], key.n);
     }
+    if (a.coeffs.length() < b.coeffs.length()) {
+        int startIndex = a.coeffs.length();
+        a.coeffs.SetLength(b.coeffs.length());
+        for (int i = startIndex; i < a.coeffs.length(); i++) {
+            a.coeffs[i] = b.coeffs[i];
+        }
+    }
 }
 
 void jle_scalar_mult_assign(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key) {
@@ -193,13 +200,11 @@ JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& 
             ZZ tmp;
             scalar_mult_encrypted(tmp, a.coeffs[i], b[j], key.n);
             add_encrypted(res[i+j], res[i+j], tmp, key.n);
-            cout << "temp:" << tmp << "\n";
         }
     }
-    cout << res << "\n";
     return JLEncoding{.coeffs = res}; 
 }
-
+//todo compare multiplications
 JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key) {
     JLEncoding res;
     long da = a.coeffs.length() - 1;

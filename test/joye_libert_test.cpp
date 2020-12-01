@@ -178,8 +178,12 @@ int main() {
         // cout << "decoded: " << decoded << "\n";
         assert (m1 == decoded);
 
+        JLEncoding encoded0;
+        jle_add_assign(encoded0, encoded1, key);
         jle_add_assign(encoded1, encoded2, key);
         jle_add_assign(encoded1, encoded3, key);
+        decoded = decode(encoded0, key);
+        assert (decoded == (m1));
         decoded = decode(encoded1, key);
         assert (decoded == (m1 + m2 + m3));
         
