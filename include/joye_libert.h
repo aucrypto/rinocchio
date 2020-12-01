@@ -1,3 +1,6 @@
+#ifndef JOYE_LIBERT_H
+#define JOYE_LIBERT_H
+
 #include <NTL/ZZ.h>
 
 using namespace NTL;
@@ -14,21 +17,17 @@ void add_encrypted(ZZ& result, const ZZ& c1, const ZZ& c2, const ZZ& n);
 
 void scalar_mult_encrypted(ZZ& result, const ZZ& c, const ZZ& scalar, const ZZ& n);
 
-struct JLEncoding {
+struct JLEncoding {// todo use typedef?
     Vec<ZZ> coeffs;
 };
 
-struct JLEncodingKeyPart {
-    ZZ p_prime, p, n, g, D;
-};
-
 struct JLEncodingKey {
-    Vec<JLEncodingKeyPart> keys;
+    ZZ p_prime, p, n, g, D;
     ZZ pow2k, pow2k1;
-    long l, k, d;
+    long l, k;
 };
 
-JLEncodingKey gen_jl_encoding_key(long l, long k, long d);
+JLEncodingKey gen_jl_encoding_key(long l, long k);
 
 JLEncoding encode(const ZZ_pE& m, const JLEncodingKey& key);
 
@@ -36,4 +35,13 @@ ZZ_pE decode(const JLEncoding& c, const JLEncodingKey& key);
 
 void jle_add_assign(JLEncoding& a, const JLEncoding& b, const JLEncodingKey& key);
 
-void jle_mult_assign(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key);
+void jle_scalar_mult_assign(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key);
+inline JLEncoding jle_scalar_mult(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key) { JLEncoding res = a; jle_scalar_mult_assign(res, scalar, key); return res;}
+
+// JLEncoding jle_scalar_mult(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key);
+
+JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key);
+
+JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key);
+
+#endif

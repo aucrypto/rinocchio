@@ -10,6 +10,39 @@
 using namespace std;
 using namespace NTL;
 
+
+Vec<ZZ> PlainMulNew(const Vec<ZZ>& a, const Vec<ZZ>& b) {
+    Vec<ZZ> res;
+    long da = a.length() - 1;
+    long db = b.length() - 1;
+    long d = da+db;
+    res.SetLength(d + 1); //todo lengths - 1
+
+
+
+    const ZZ *ap, *bp;
+
+    ap = a.elts();
+    bp = b.elts();
+
+    ZZ *resp = res.elts();
+
+    long i, j, jmin, jmax;
+    ZZ t, acc;
+
+    for (i = 0; i <= d; i++) {
+        jmin = max(0, i-db);
+        jmax = min(da, i);
+        clear(acc);
+        for (j = jmin; j <= jmax; j++) {
+            mul(t, ap[j], bp[i-j]);
+            add(acc, acc, t);
+        }
+        resp[i] = acc;
+    }
+    return res;
+}
+
 int main() {
     ZZ modulus = ZZ(1) << 64;
     ZZ_p::init(modulus);
@@ -135,7 +168,7 @@ int main() {
         ZZ_pE m1 = random_ZZ_pE();
         ZZ_pE m2 = random_ZZ_pE();
         ZZ_pE m3 = random_ZZ_pE();
-        JLEncodingKey key = gen_jl_encoding_key(l, k, 4);
+        JLEncodingKey key = gen_jl_encoding_key(l, k);
         JLEncoding encoded1 = encode(m1, key);
         JLEncoding encoded2 = encode(m2, key);
         JLEncoding encoded3 = encode(m3, key);
@@ -145,15 +178,42 @@ int main() {
         // cout << "decoded: " << decoded << "\n";
         assert (m1 == decoded);
 
+        JLEncoding encoded0;
+        jle_add_assign(encoded0, encoded1, key);
         jle_add_assign(encoded1, encoded2, key);
         jle_add_assign(encoded1, encoded3, key);
+        decoded = decode(encoded0, key);
+        assert (decoded == (m1));
         decoded = decode(encoded1, key);
         assert (decoded == (m1 + m2 + m3));
         
         ZZ scalar = ZZ(1231314);
-        jle_mult_assign(encoded2, scalar, key);
+        jle_scalar_mult_assign(encoded2, scalar, key);
         decoded = decode(encoded2, key);
         assert (decoded == (conv<ZZ_pE>(scalar) * m2));
+
+    }
+
+    
+    {
+        ZZ_pE m1 = random_ZZ_pE();
+        ZZ_pE m2 = random_ZZ_pE();
+        JLEncodingKey key = gen_jl_encoding_key(l, k);
+        JLEncoding encoded1 = encode(m1, key);
+        JLEncoding encoded2 = encode(m2, key);
+        
+        ZZ_pE decoded = decode(encoded1, key);
+        // cout << "m1......: " << m1 << "\n";
+        // cout << "decoded: " << decoded << "\n";
+        assert (m1 == decoded);
+
+        JLEncoding encoded12prod = jle_mult(encoded1, to_vec_ZZ(rep(m2).rep), key);
+        decoded = decode(encoded12prod, key);
+        assert (decoded == (m1 * m2));
+
+        JLEncoding encoded12prod_ = PlainMulEncryption(encoded1, to_vec_ZZ(rep(m2).rep), key);
+        ZZ_pE decoded2 = decode(encoded12prod_, key);
+        assert (decoded2 == (m1*m2));
     }
 
     cout << "\nPassed all tests!\n";

@@ -3,6 +3,7 @@
 #include <NTL/ZZ_pE.h>
 #include <NTL/ZZ_pX.h>
 #include <vector>
+#include <joye_libert.h>
 
 using namespace std;
 using namespace NTL;
@@ -114,48 +115,26 @@ void scalar_mult_encrypted(ZZ& c_result, const ZZ& c, const ZZ& scalar, const ZZ
     c_result = PowerMod(c, scalar, n);
 }
 
-struct JLEncodingKeyPart {
+JLEncodingKey gen_jl_encoding_key(long l, long k) {
     ZZ p_prime, p, n, g, D;
-};
-
-struct JLEncodingKey {
-    Vec<JLEncodingKeyPart> keys;
-    ZZ pow2k, pow2k1;
-    long l, k, d;
-};
-
-JLEncodingKey gen_jl_encoding_key(long l, long k, long d) {
-    Vec<JLEncodingKeyPart> keys;
-    for (int i = 0; i < d; i++) {
-        ZZ p_prime, p, n, g, D;
-        keygen(p_prime, p, n, g, D, l, k);
-        keys.append(JLEncodingKeyPart{
-            .p_prime = p_prime,
-            .p = p,
-            .n = n,
-            .g = g,
-            .D = D,
-        });
-    };
+    keygen(p_prime, p, n, g, D, l, k);
 
     ZZ pow2k, pow2k1;
     precompute_pow2(pow2k, k);
     precompute_pow2(pow2k1, k-1);
 
     return JLEncodingKey{
-        .keys = keys,
+        .p_prime = p_prime,
+        .p = p,
+        .n = n,
+        .g = g,
+        .D = D,
         .pow2k = pow2k, 
         .pow2k1 = pow2k1,
         .l = l, 
         .k = k, 
-        .d = d,
     };
 }
-
-
-struct JLEncoding {
-    Vec<ZZ> coeffs;
-};
 
 JLEncoding encode(const ZZ_pE& m, const JLEncodingKey& key) {
     Vec<ZZ> res;
@@ -163,9 +142,8 @@ JLEncoding encode(const ZZ_pE& m, const JLEncodingKey& key) {
     
     for (int i = 0; i < ZZ_pE::degree(); i++) {
         ZZ c;
-        const ZZ_p& ci = polynomialRep[i];
-        const JLEncodingKeyPart& keypart_i = key.keys[i];
-        encrypt(c, rep(ci), keypart_i.n, keypart_i.g, key.k, key.pow2k);
+        const ZZ_p& ci = coeff(polynomialRep, i);
+        encrypt(c, rep(ci), key.n, key.g, key.k, key.pow2k);
         res.append(c);
     }
     return JLEncoding{.coeffs = res};
@@ -174,17 +152,16 @@ JLEncoding encode(const ZZ_pE& m, const JLEncodingKey& key) {
 ZZ_pE decode(const JLEncoding& c, const JLEncodingKey& key) {
     ZZ_pX result;
     
-    std::cout << "k....: " << key.k << "\n";
-    std::cout << "po2k1: " << key.pow2k1 << "\n";
+    // std::cout << "k....: " << key.k << "\n";
+    // std::cout << "po2k1: " << key.pow2k1 << "\n";
     ZZ ci;
-    for (int i = 0; i < key.d; i++) {
-        const JLEncodingKeyPart& keypart_i = key.keys[i];
-        std::cout << "coeff: " << c.coeffs[i] << "\n";
-        std::cout << "p....: " << keypart_i.p << "\n";
-        std::cout << "p_pri: " << keypart_i.p_prime << "\n";
-        std::cout << "D....: " << keypart_i.D << "\n";
-        decrypt(ci, c.coeffs[i], keypart_i.p, keypart_i.p_prime, keypart_i.D, key.k, key.pow2k1);
-        std::cout << "decry: " << ci << "\n";
+    for (int i = 0; i < c.coeffs.length(); i++) {
+        // std::cout << "coeff: " << c.coeffs[i] << "\n";
+        // std::cout << "p....: " << key.p << "\n";
+        // std::cout << "p_pri: " << key.p_prime << "\n";
+        // std::cout << "D....: " << key.D << "\n";
+        decrypt(ci, c.coeffs[i], key.p, key.p_prime, key.D, key.k, key.pow2k1);
+        // std::cout << "decry: " << ci << "\n";
         ZZ_p ci_ = conv<ZZ_p>(ci);
         SetCoeff(result, i, ci_);
     }
@@ -193,13 +170,69 @@ ZZ_pE decode(const JLEncoding& c, const JLEncodingKey& key) {
 }
 
 void jle_add_assign(JLEncoding& a, const JLEncoding& b, const JLEncodingKey& key) {
-    for (int i = 0; i < key.d; i++) {
-        add_encrypted(a.coeffs[i], a.coeffs[i], b.coeffs[i], key.keys[i].n);
+    for (int i = 0; i < a.coeffs.length() && i < b.coeffs.length(); i++) {
+        add_encrypted(a.coeffs[i], a.coeffs[i], b.coeffs[i], key.n);
+    }
+    if (a.coeffs.length() < b.coeffs.length()) {
+        int startIndex = a.coeffs.length();
+        a.coeffs.SetLength(b.coeffs.length());
+        for (int i = startIndex; i < a.coeffs.length(); i++) {
+            a.coeffs[i] = b.coeffs[i];
+        }
     }
 }
 
-void jle_mult_assign(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key) {
-    for (int i = 0; i < key.d; i++) {
-        scalar_mult_encrypted(a.coeffs[i], a.coeffs[i], scalar, key.keys[i].n);
+void jle_scalar_mult_assign(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key) {
+    for (int i = 0; i < a.coeffs.length() ; i++) {
+        scalar_mult_encrypted(a.coeffs[i], a.coeffs[i], scalar, key.n);
     }
+}
+
+JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key) {
+    Vec<ZZ> res;
+    int d = a.coeffs.length() + b.length() - 1;
+    res.SetLength(d); //todo -2?
+    for (int i = 0; i < d; i++) {
+        res[i] = ZZ(1);
+    }
+    for (int i = 0; i < a.coeffs.length(); i++) {
+        for (int j = 0; j < b.length(); j++) {
+            ZZ tmp;
+            scalar_mult_encrypted(tmp, a.coeffs[i], b[j], key.n);
+            add_encrypted(res[i+j], res[i+j], tmp, key.n);
+        }
+    }
+    return JLEncoding{.coeffs = res}; 
+}
+//todo compare multiplications
+JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key) {
+    JLEncoding res;
+    long da = a.coeffs.length() - 1;
+    long db = b.length() - 1;
+    long d = da+db;
+    res.coeffs.SetLength(d + 1); //todo lengths - 1
+
+
+
+    const ZZ *ap, *bp;
+
+    ap = a.coeffs.elts();
+    bp = b.elts();
+
+    ZZ *resp = res.coeffs.elts();
+
+    long i, j, jmin, jmax;
+    ZZ t, acc;
+
+    for (i = 0; i <= d; i++) {
+        jmin = max(0, i-db);
+        jmax = min(da, i);
+        set(acc);
+        for (j = jmin; j <= jmax; j++) {
+            scalar_mult_encrypted(t, ap[j], bp[i-j], key.n);
+            add_encrypted(acc, acc, t, key.n);
+        }
+        resp[i] = acc;
+    }
+    return res;
 }

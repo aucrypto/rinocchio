@@ -8,9 +8,9 @@ using namespace NTL;
 
 struct secretState {
     ZZ_pE s, r_v, r_w, r_y, alpha, alpha_v, alpha_w, alpha_y, beta;
-    bool secretKey;
+    JLEncodingKey secretKey;
 };
 
-secretState setup();
+secretState setup(long l, long k);
 
 #endif
