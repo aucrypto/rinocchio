@@ -31,44 +31,36 @@ int main() {
     ZZ_pE::init(P);
     cout << "modulus: " << P << "\n";
 
-    ZZ_pE g_1, g_2;
-    g_1 = indexedElementInExceptionalSet(3);
-    g_2 = indexedElementInExceptionalSet(13);
-    ZZ_pE diff = g_1 - g_2;
-    cout << "g_1: " << g_1 << "\n";
-    cout << "g_2: " << g_2 << "\n";
-    cout << "g_1-g_2: " << diff << "\n";
-    cout << "g_2-g_1: " << -diff << "\n";
-
-    //   XGCD(d, x, t, a, f); // x result, a elem, f mod, d, t fresh
-    // ZZ_pX dx, tx, x;
-    // ZZ_pX dixx = rep(diff);
-    // PlainXGCD(dx, x, tx, dixx, ZZ_pE::modulus());
-    // cout << x << "inv\n";
-
-    // cout << "lead coeff g_1-g_2: " << LeadCoeff(rep(diff)) << "\n";
-    // cout << "lead coeff g_2-g_1: " << LeadCoeff(rep(-diff)) << "\n";
-    
+    cout << "-------Testing small example-------\n";
     {
-        ZZX diffx = to_ZZX(rep(diff));
-        ZZX q, r;
-        // HomPseudoDivRem(q, r, to_ZZX(ZZ_pE::modulus()), diffx);
-        ZZX inverse, mod, t;
-        mod = to_ZZX(ZZ_pE::modulus());
-        ZZ d;
-        XGCD(d, inverse, t, diffx, mod, 1);
-        cout << "d % 2^64: " << d % modulus << "\n";
-        ZZ_p dP = to_ZZ_p(d);
-        ZZ_pX dPX = ZZ_pX();
-        SetCoeff(dPX, 0, dP);
+        ZZ_pE g_1, g_2;
+        g_1 = indexedElementInExceptionalSet(3);
+        g_2 = indexedElementInExceptionalSet(13);
+        ZZ_pE diff = g_1 - g_2;
+        cout << "g_1: " << g_1 << "\n";
+        cout << "g_2: " << g_2 << "\n";
+        cout << "g_1-g_2: " << diff << "\n";
+        cout << "g_2-g_1: " << -diff << "\n";
 
-        ZZ_pX invX = to_ZZ_pX(inverse);
-        divide(invX, invX, dPX);
-        ZZ_pE actualInverse = to_ZZ_pE(invX);
-        cout << "Inverse: " << actualInverse << "\n";
+        ZZ_pE diffInv = getInverse(diff);
+        cout << "(g1-g2)^-1: " << diffInv << "\n";
+        cout << "(g1-g2) * (g1-g2)^-1: " << diff * diffInv << "\n";
 
-        ZZ_pE reducedOne = actualInverse * diff;
-        cout << "inverse * diff: " <<  reducedOne  << "\n"; 
-        cout << "g_1-g_2 passed\n";
+        ZZ_pE minusDiffInv = getInverse(-diff);
+        cout << "(g2-g1)^-1: " << minusDiffInv << "\n";
+        cout << "(g2-g1) * (g2-g1)^-1: " << (-diff) * minusDiffInv << "\n";
+    }
+    
+    cout << "-------Testing all elements in exceptional set-------\n";
+
+    for (int i = 0; i < 16; i++) {
+        for (int j = 0; j < 16; j++) {
+            if (i == j) {
+                continue;
+            }
+            ZZ_pE diff = indexedElementInExceptionalSet(i) - indexedElementInExceptionalSet(j);
+            ZZ_pE diffInv = getInverse(diff);
+            cout << "(" << i << "," << j << "): " << diff * diffInv << "\n";
+        }
     }
 }

@@ -16,4 +16,6 @@ ZZ_pE randomInExceptionalSet();
 // Random element in A*
 ZZ_pE randomNonZeroInExceptionalSet();
 
+ZZ_pE getInverse(ZZ_pE element);
+
 #endif

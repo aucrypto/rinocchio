@@ -1,4 +1,5 @@
 #include <NTL/ZZ_pE.h>
+#include <NTL/ZZX.h>
 
 using namespace NTL;
 
@@ -48,4 +49,22 @@ ZZ_pE randomNonZeroInExceptionalSet() {
         ZZ_pE res = randomInExceptionalSet();
         if(! IsZero(res)) return res;
     }
+}
+
+// Element must be invertible.
+ZZ_pE getInverse(ZZ_pE element) {
+    ZZX elemX = to_ZZX(rep(element));
+    ZZX mod = to_ZZX(ZZ_pE::modulus());
+    ZZX s, t;
+    ZZ r;
+
+    XGCD(r, s, t, elemX, mod, 1);
+
+    ZZ_pX rPX = ZZ_pX();
+    SetCoeff(rPX, 0, to_ZZ_p(r));
+    
+    ZZ_pX inverse;
+    divide(inverse, to_ZZ_pX(s), rPX);
+
+    return to_ZZ_pE(inverse); 
 }
