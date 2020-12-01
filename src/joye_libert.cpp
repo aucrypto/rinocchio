@@ -183,15 +183,21 @@ void jle_scalar_mult_assign(JLEncoding& a, const ZZ& scalar, const JLEncodingKey
 
 JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key) {
     Vec<ZZ> res;
-    res.SetLength(a.coeffs.length() + b.length() - 1); //todo -2?
+    int d = a.coeffs.length() + b.length() - 1;
+    res.SetLength(d); //todo -2?
+    for (int i = 0; i < d; i++) {
+        res[i] = ZZ(1);
+    }
     for (int i = 0; i < a.coeffs.length(); i++) {
         for (int j = 0; j < b.length(); j++) {
             ZZ tmp;
             scalar_mult_encrypted(tmp, a.coeffs[i], b[j], key.n);
             add_encrypted(res[i+j], res[i+j], tmp, key.n);
+            cout << "temp:" << tmp << "\n";
         }
     }
-    return JLEncoding{.coeffs = res};
+    cout << res << "\n";
+    return JLEncoding{.coeffs = res}; 
 }
 
 JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key) {
@@ -216,7 +222,7 @@ JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingK
     for (i = 0; i <= d; i++) {
         jmin = max(0, i-db);
         jmax = min(da, i);
-        clear(acc);
+        set(acc);
         for (j = jmin; j <= jmax; j++) {
             scalar_mult_encrypted(t, ap[j], bp[i-j], key.n);
             add_encrypted(acc, acc, t, key.n);
