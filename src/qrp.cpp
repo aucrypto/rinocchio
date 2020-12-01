@@ -6,32 +6,47 @@
 using namespace NTL;
 using namespace std;
 
+Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates) {
+    Vec<ZZ_pEX> deltas;
+    deltas.SetLength(numberOfMultiplicationGates);
+
+    //todo we could generate all the needed elements of the exceptional set only once, and more efficiently
+
+    ZZ_pEX x, numerator;
+    ZZ_pE denominator;
+    SetX(x);
+    for (long i = 0; i < numberOfMultiplicationGates; i++)  {
+        set(numerator);
+        set(denominator);
+        for (long j = 0; j < numberOfMultiplicationGates; j++)  {
+            if (i == j) continue;
+            numerator *= x - indexedElementInExceptionalSet(j);
+            denominator *= indexedElementInExceptionalSet(i) - indexedElementInExceptionalSet(j);
+        }
+        deltas[i] = numerator * getInverse(denominator);
+    }
+
+    return deltas;
+}
+
 QRP getQRP(Circuit circuit) {
     //Pick distinct elements of exceptional set for each gate:
-    Vec<ZZ_pE> multWires;
+    Vec<ZZ_pEX> deltas = getInterpolationDeltas(circuit.numberOfMultiplicationGates);
 
-
-    // Compute t(x) = (x - g_1) * (x - g_2)
     Vec<ZZ_pEX> V, W, Y;
     V.SetLength(circuit.numberOfWires);
     W.SetLength(circuit.numberOfWires);
     Y.SetLength(circuit.numberOfWires);
+
+    // Compute t(x) = (x - g_1) * (x - g_2) ...
     ZZ_pEX t = conv<ZZ_pEX>(1);
-    ZZ_pE galloisOne;
-    set(galloisOne);
     ZZ_pEX x;
     SetX(x);
     
-    Vec<Vec<ZZ_pE>> v_values, w_values, y_values;
-    v_values.SetLength(circuit.numberOfWires);
-    w_values.SetLength(circuit.numberOfWires);
-    y_values.SetLength(circuit.numberOfWires);
-    
     for (int k = 0; k < circuit.numberOfMultiplicationGates; k++) {
-        multWires.append(indexedElementInExceptionalSet(k));
 
         //target polynomial:
-        t *= x - indexedElementInExceptionalSet(k);
+        t *= x - indexedElementInExceptionalSet(k); // this is used when generating deltas as well
 
         Gate kthMultGate =  circuit.gates[k];
 
@@ -41,34 +56,20 @@ QRP getQRP(Circuit circuit) {
         vector<long> rightInputs = kthMultGate.rightInputs;
         for (int j = 0; j < circuit.numberOfWires; j++) {
             if (j == k + circuit.numberOfInputWires) {
-                y_values[j].append(galloisOne);
-            } else {
-                y_values[j].append(ZZ_pE::zero());
+                Y[j] += deltas[k];
             }
             
             if (nextLeftInput < leftInputs.size() && j == leftInputs[nextLeftInput]) {
-                v_values[j].append(galloisOne);
+                V[j] += deltas[k];
                 nextLeftInput++;
-            } else {
-                v_values[j].append(ZZ_pE::zero());
-            }
+            } 
             
             if (nextRightInput < rightInputs.size() && j == rightInputs[nextRightInput]) {
-                w_values[j].append(galloisOne);
+                W[j] += deltas[k];
                 nextRightInput++;
-            } else {
-                w_values[j].append(ZZ_pE::zero());
             }
         }
     }
-
-    for (int k = 0; k < circuit.numberOfWires; k++) {
-        interpolate(V[k], multWires, v_values[k]);
-        interpolate(W[k], multWires, w_values[k]);
-        interpolate(Y[k], multWires, y_values[k]);
-        
-    }
-    
     
     QRP qrp;
     qrp.circuit = circuit;
