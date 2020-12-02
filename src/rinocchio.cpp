@@ -146,8 +146,8 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
     }
     ZZ_pEX P = V*W-Y;
 
-    // Compute h = p*(t^-1)
-    ZZ_pEX H = P / prog.t;//todo we should precompute the inverse of t instead.
+    // Compute h = p / t
+    ZZ_pEX H = P / prog.t;
 
 
     // E(r_v * Vmid(S))
@@ -195,13 +195,13 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
     // E(alpha * h(s))
     JLEncoding vec_hOfS, vec_alphaHofS;
     for (int i = 0 ; i <= deg(H); i++) {
-        //Multiplications of polynomials
         //todo How do we know that the degree of H is at most the number of multiplication gates?
         Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep);
         JLEncoding ihs = PlainMulEncryption(crs.powersOfS[i], ithCoeffOfH, crs.publicKey);
         JLEncoding iahs = PlainMulEncryption(crs.powersOfSMultAlpha[i], ithCoeffOfH, crs.publicKey);
         jle_add_assign(vec_hOfS, ihs, crs.publicKey);
         jle_add_assign(vec_alphaHofS, iahs, crs.publicKey);
+        //todo should we reduce the degree of the encodings - and how?
     }
 
     return Proof{

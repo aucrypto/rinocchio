@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <gr.h>
+#include <circuit.h>
 #include <qrp.h>
 #include <setup.h>
 #include <rinocchio.h>
