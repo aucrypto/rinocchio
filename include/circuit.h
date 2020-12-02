@@ -6,6 +6,7 @@
 #include <vector>
 
 using namespace NTL;
+using namespace std;
 
 struct Gate {
     std::vector<long> leftInputs, rightInputs;
@@ -19,6 +20,8 @@ struct Circuit {
     long numberOfMultiplicationGates;
     std::vector<Gate> gates;
 };
+
+ostream& operator<<(ostream& s, const Circuit circuit);
 
 Vec<ZZ_p> eval(Circuit circuit, Vec<ZZ_p> input);
 

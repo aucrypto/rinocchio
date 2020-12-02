@@ -61,6 +61,8 @@ int main() {
     circuit.gates.push_back(g4);
     circuit.gates.push_back(g5);
 
+    cout << circuit;
+
     QRP qrp = getQRP(circuit);
     secretState state = setup(512, 64);
     CRS crs = getCRS(qrp, state);

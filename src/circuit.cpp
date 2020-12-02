@@ -24,3 +24,29 @@ Vec<ZZ_p> eval(Circuit circuit, Vec<ZZ_p> input) {
     }
     return allWireValues;
 }
+
+
+ostream& operator<<(ostream& s, const Circuit circuit) {
+    s << "numberOfWires..............: " << circuit.numberOfWires << "\n";
+    s << "numberOfInputWires.........: " << circuit.numberOfInputWires << "\n";
+    s << "numberOfMidWires...........: " << circuit.numberOfMidWires << "\n";
+    s << "numberOfOutputWires........: " << circuit.numberOfOutputWires << "\n";
+    s << "numberOfMultiplicationGates: " << circuit.numberOfMultiplicationGates << "\n";
+    for (long i = 0; i < circuit.gates.size(); i++) {
+        const vector<long> l = circuit.gates[i].leftInputs;
+        const vector<long> r = circuit.gates[i].rightInputs;
+        
+        s << "Gate " << i << ":\n";
+        s << "  leftInputs:  ";
+        for (long j = 0; j < l.size(); j++) {
+            s << " " << l[j];
+        }
+        s << "\n";
+        s << "  rightInputs: ";
+        for (long j = 0; j < r.size(); j++) {
+            s << " " << r[j];
+        }
+        s << "\n";
+    }
+    return s;
+}
