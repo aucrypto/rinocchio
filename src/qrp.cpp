@@ -21,15 +21,15 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates) {
             if (i == j) continue;
 
             numerator *= x - indexedElementInExceptionalSet(j);
-            denominator *= getInverse(indexedElementInExceptionalSet(i) - indexedElementInExceptionalSet(j));
+            denominator *= indexedElementInExceptionalSet(i) - indexedElementInExceptionalSet(j);
         }
-        deltas[i] = numerator * (denominator);
+        deltas[i] = numerator * getInverse(denominator);
     }
 
     return deltas;
 }
 
-QRP getQRP(Circuit circuit) {
+QRP getQRP(const Circuit& circuit) {
     //Pick distinct elements of exceptional set for each gate:
     Vec<ZZ_pEX> deltas = getInterpolationDeltas(circuit.numberOfMultiplicationGates);
 
@@ -57,14 +57,17 @@ QRP getQRP(Circuit circuit) {
         for (int j = 0; j < circuit.numberOfWires; j++) {
             if (j == k + circuit.numberOfInputWires) {
                 Y[j] += deltas[k];
+                // cout << j << " is output of " << k + circuit.numberOfInputWires << endl;
             }
             
             if (nextLeftInput < leftInputs.size() && j == leftInputs[nextLeftInput]) {
+                // cout << j << " is left input of " << k + circuit.numberOfInputWires << endl;
                 V[j] += deltas[k];
                 nextLeftInput++;
             } 
             
             if (nextRightInput < rightInputs.size() && j == rightInputs[nextRightInput]) {
+                // cout << j << " is right input of " << k + circuit.numberOfInputWires << endl;
                 W[j] += deltas[k];
                 nextRightInput++;
             }

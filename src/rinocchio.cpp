@@ -258,7 +258,6 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
         return false;
     }
 
-    // todo compute P_io
     // compute P_in
     ZZ_pE v_io, w_io, y_io;
     for (int k = 0; k < input.length(); k++) {
@@ -266,7 +265,7 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
         w_io += input[k] * eval(qrp.W[k], secret.s);
         y_io += input[k] * eval(qrp.Y[k], secret.s);
     }
-    // compute P_out
+    // add P_out
     for (int k = 0; k < output.length(); k++) {
         v_io += output[k] * eval(qrp.V[k+qrp.outOffset], secret.s);
         w_io += output[k] * eval(qrp.W[k+qrp.outOffset], secret.s);
@@ -280,9 +279,6 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
 
     ZZ_pE computedP = computedV * computedW - computedY;
     ZZ_pE hMultT = hOfS * eval(qrp.t, secret.s);
-    // cout << "hOfS" << hOfS << endl;
-    // cout << "hmult" << hMultT << endl;
-    // cout << "ry" << secret.r_y << endl;
     if (computedP != secret.r_y * hMultT) {
         cout << "compute P: " << computedP << "\n";
         cout << "r_y * h*t: " << secret.r_y * hMultT << "\n";

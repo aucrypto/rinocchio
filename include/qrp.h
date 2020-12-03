@@ -19,6 +19,6 @@ struct QRP {
     Vec<ZZ_pEX> Y;
 };
 
-QRP getQRP(Circuit circuit);
+QRP getQRP(const Circuit& circuit);
 
 #endif

@@ -22,6 +22,8 @@
 using namespace std;
 using namespace NTL;
 
+void testMatrixMultCircuit(Circuit c);
+
 void basicExample() {
 
     ZZ modulus = ZZ(1) << 64;
@@ -30,15 +32,15 @@ void basicExample() {
 
     ZZ_pX P = ZZ_pX();
     // P = x^4 + x + 1
-    // SetCoeff(P, 0);
-    // SetCoeff(P, 1);
-    // SetCoeff(P, 4);
-
-    // P = x^32 + x^22 + x^2 + x^1 + 1
     SetCoeff(P, 0);
     SetCoeff(P, 1);
-    SetCoeff(P, 22);
-    SetCoeff(P, 32);
+    SetCoeff(P, 4);
+
+    // P = x^32 + x^22 + x^2 + x^1 + 1
+    // SetCoeff(P, 0);
+    // SetCoeff(P, 1);
+    // SetCoeff(P, 22);
+    // SetCoeff(P, 32);
 
     // instantiate GF(2^64, 4)
     ZZ_pE::init(P);
@@ -78,7 +80,7 @@ void basicExample() {
     Proof pi = prove(qrp, crs, allWireValues);
 
     Vec<ZZ_p> output;
-    output.append(ZZ_p(42));
+    output.append(allWireValues[5]);
 
     assert (verify(qrp, state, crs, pi, input, output) == 1);
 }
@@ -98,17 +100,13 @@ void testMatrixMultCircuit(Circuit c) {
     ZZ_p::init(modulus);
 
     ZZ_pX P = ZZ_pX();
-    // P = x^4 + x + 1
-    SetCoeff(P, 0);
-    SetCoeff(P, 1);
-    SetCoeff(P, 4);
 
     // P = x^32 + x^22 + x^2 + x^1 + 1
-    // SetCoeff(P, 0);
-    // SetCoeff(P, 1);
-    // SetCoeff(P, 2);
-    // SetCoeff(P, 22);
-    // SetCoeff(P, 32);
+    SetCoeff(P, 0);
+    SetCoeff(P, 1);
+    SetCoeff(P, 2);
+    SetCoeff(P, 22);
+    SetCoeff(P, 32);
 
     // instantiate GF(2^64, 4)
     ZZ_pE::init(P);
@@ -118,9 +116,9 @@ void testMatrixMultCircuit(Circuit c) {
     secretState state = setup(512, 64);
     CRS crs = getCRS(qrp, state);
     Vec<ZZ_p> input;
-    input.SetLength(c.numberOfWires);
+    input.SetLength(c.numberOfInputWires);
     input[0] = ZZ_p(1);
-    for (long i = 1; i < c.numberOfWires; i++) {
+    for (long i = 1; i < c.numberOfInputWires; i++) {
         input[i] = ZZ_p(i);
     }
 
@@ -139,10 +137,9 @@ void testMatrixMultCircuit(Circuit c) {
 }
 
 int main() {
-    basicExample();
+    // basicExample();
 
     string path = "./out/matrix2.txt";
-    path = "./out/formula.txt";
     const Circuit c = circuitFromFile(path);
     // printCircuit(c);
     testMatrixMultCircuit(c);
