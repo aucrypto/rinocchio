@@ -236,3 +236,7 @@ JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingK
     }
     return res;
 }
+
+ostream& operator<<(ostream& s, const JLEncoding& jle) {
+    return s << jle.coeffs;
+}

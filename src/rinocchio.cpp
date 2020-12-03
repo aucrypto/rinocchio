@@ -51,11 +51,10 @@ CRS getCRS(QRP prog, secretState ss) {
             ZZ_pE ithPower = ZZ_pE(acc);
             powersOfS.append(encode(ithPower, ss.secretKey));
 
-            ZZ_pE ithPowerMultAlpha;
-            mul(ithPowerMultAlpha, ss.alpha, ithPower);
+            ZZ_pE ithPowerMultAlpha = ss.alpha * ithPower;
             powersOfSMultAlpha.append(encode(ithPowerMultAlpha, ss.secretKey));
             
-            mul(acc, acc, ss.s);
+            acc = acc * ss.s;
         }
     }
 
@@ -143,8 +142,13 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
         V += allWireValues[k] * prog.V[k];
         W += allWireValues[k] * prog.W[k];
         Y += allWireValues[k] * prog.Y[k];
+        ZZ_pEX Piter = V * W - Y;
+        // if (IsZero(Piter)) cout << "0" << endl;
+        // else  cout << "not 0" << endl;
     }
+    // cout << V*W << "V*W" << endl;
     ZZ_pEX P = V*W-Y;
+    // cout << P << "P" << endl;
 
     // Compute h = p / t
     ZZ_pEX H = P / prog.t;
@@ -193,12 +197,15 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
 
     // E(h(s))
     // E(alpha * h(s))
+
+    // cout << H << "H" << endl;
     JLEncoding vec_hOfS, vec_alphaHofS;
     for (int i = 0 ; i <= deg(H); i++) {
         //todo How do we know that the degree of H is at most the number of multiplication gates?
         Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep);
         JLEncoding ihs = PlainMulEncryption(crs.powersOfS[i], ithCoeffOfH, crs.publicKey);
         JLEncoding iahs = PlainMulEncryption(crs.powersOfSMultAlpha[i], ithCoeffOfH, crs.publicKey);
+        // cout << ihs << "ihs"<< endl;
         jle_add_assign(vec_hOfS, ihs, crs.publicKey);
         jle_add_assign(vec_alphaHofS, iahs, crs.publicKey);
         //todo should we reduce the degree of the encodings - and how?
@@ -273,6 +280,9 @@ bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec
 
     ZZ_pE computedP = computedV * computedW - computedY;
     ZZ_pE hMultT = hOfS * eval(qrp.t, secret.s);
+    // cout << "hOfS" << hOfS << endl;
+    // cout << "hmult" << hMultT << endl;
+    // cout << "ry" << secret.r_y << endl;
     if (computedP != secret.r_y * hMultT) {
         cout << "compute P: " << computedP << "\n";
         cout << "r_y * h*t: " << secret.r_y * hMultT << "\n";

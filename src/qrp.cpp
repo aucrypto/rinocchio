@@ -11,7 +11,6 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates) {
     deltas.SetLength(numberOfMultiplicationGates);
 
     //todo we could generate all the needed elements of the exceptional set only once, and more efficiently
-
     ZZ_pEX x, numerator;
     ZZ_pE denominator;
     SetX(x);
@@ -20,10 +19,11 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates) {
         set(denominator);
         for (long j = 0; j < numberOfMultiplicationGates; j++)  {
             if (i == j) continue;
+
             numerator *= x - indexedElementInExceptionalSet(j);
-            denominator *= indexedElementInExceptionalSet(i) - indexedElementInExceptionalSet(j);
+            denominator *= getInverse(indexedElementInExceptionalSet(i) - indexedElementInExceptionalSet(j));
         }
-        deltas[i] = numerator * getInverse(denominator);
+        deltas[i] = numerator * (denominator);
     }
 
     return deltas;

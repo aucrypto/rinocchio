@@ -38,5 +38,7 @@ secretState setup(long l, long k) {
     ss.beta = beta;
     ss.secretKey = gen_jl_encoding_key(l, k);
     
+    std::cout << "setup done\n";
+
     return ss;
 }

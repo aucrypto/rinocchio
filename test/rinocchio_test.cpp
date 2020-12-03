@@ -22,7 +22,7 @@
 using namespace std;
 using namespace NTL;
 
-int main() {
+void basicExample() {
 
     ZZ modulus = ZZ(1) << 64;
     ZZ_p::init(modulus);
@@ -65,21 +65,6 @@ int main() {
     circuit.gates.push_back(g4);
     circuit.gates.push_back(g5);
 
-    stringstream stream;
-    stream << circuit;
-    Circuit cread;
-    stream >> cread;
-    printCircuit(cread);
-
-    ifstream File;
-    File.open("./out/matrix2.txt", ios::in);
-    if (File) {
-        Circuit fc;
-        File >> fc;
-        printCircuit(fc);
-
-    }
-
     QRP qrp = getQRP(circuit);
     secretState state = setup(512, 64);
     CRS crs = getCRS(qrp, state);
@@ -96,4 +81,69 @@ int main() {
     output.append(ZZ_p(42));
 
     assert (verify(qrp, state, crs, pi, input, output) == 1);
+}
+
+Circuit circuitFromFile(string path) {
+    Circuit c;
+    ifstream File;
+    File.open(path, ios::in);
+    if (File) {
+        File >> c;
+    }
+    return c;
+}
+
+void testMatrixMultCircuit(Circuit c) {
+    ZZ modulus = ZZ(1) << 64;
+    ZZ_p::init(modulus);
+
+    ZZ_pX P = ZZ_pX();
+    // P = x^4 + x + 1
+    SetCoeff(P, 0);
+    SetCoeff(P, 1);
+    SetCoeff(P, 4);
+
+    // P = x^32 + x^22 + x^2 + x^1 + 1
+    // SetCoeff(P, 0);
+    // SetCoeff(P, 1);
+    // SetCoeff(P, 2);
+    // SetCoeff(P, 22);
+    // SetCoeff(P, 32);
+
+    // instantiate GF(2^64, 4)
+    ZZ_pE::init(P);
+    cout << "modulus: " << P << "\n";
+
+    const QRP qrp = getQRP(c);
+    secretState state = setup(512, 64);
+    CRS crs = getCRS(qrp, state);
+    Vec<ZZ_p> input;
+    input.SetLength(c.numberOfWires);
+    input[0] = ZZ_p(1);
+    for (long i = 1; i < c.numberOfWires; i++) {
+        input[i] = ZZ_p(i);
+    }
+
+    Vec<ZZ_p> allWireValues = eval(c, input);
+    cout << allWireValues << "all wires\n";
+    Proof pi = prove(qrp, crs, allWireValues);
+
+    Vec<ZZ_p> output;
+    output.SetLength(c.numberOfOutputWires);
+    for (long i = 0; i < c.numberOfOutputWires; i++) {
+        output[i] = allWireValues[i + qrp.outOffset];
+    }
+    cout << output << "output\n";
+
+    assert (verify(qrp, state, crs, pi, input, output) == 1);
+}
+
+int main() {
+    basicExample();
+
+    string path = "./out/matrix2.txt";
+    path = "./out/formula.txt";
+    const Circuit c = circuitFromFile(path);
+    // printCircuit(c);
+    testMatrixMultCircuit(c);
 }

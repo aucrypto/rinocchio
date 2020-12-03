@@ -3,6 +3,7 @@
 
 #include <NTL/ZZ.h>
 
+using namespace std;
 using namespace NTL;
 
 void keygen(ZZ& p_prime, ZZ& p, ZZ& n, ZZ& y, ZZ& D, const int l, const int k);
@@ -43,5 +44,7 @@ inline JLEncoding jle_scalar_mult(JLEncoding& a, const ZZ& scalar, const JLEncod
 JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key);
 
 JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key);
+
+ostream& operator<<(ostream& s, const JLEncoding& jle);
 
 #endif

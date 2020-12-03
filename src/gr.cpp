@@ -57,7 +57,6 @@ ZZ_pE getInverse(ZZ_pE element) {
     ZZX mod = to_ZZX(ZZ_pE::modulus());
     ZZX s, t;
     ZZ r;
-
     XGCD(r, s, t, elemX, mod, 1);
 
     ZZ_pX rPX = ZZ_pX();
