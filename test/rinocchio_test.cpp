@@ -19,6 +19,8 @@
 
 #include <assert.h>
 
+#include <time.h>
+
 using namespace std;
 using namespace NTL;
 
@@ -112,9 +114,10 @@ void testMatrixMultCircuit(Circuit c) {
     // instantiate GF(2^64, 4)
     ZZ_pE::init(P);
     cout << "modulus: " << P << "\n";
-
+    clock_t t;
     const QRP qrp = getQRP(c);
-    cout << "QRP done\n";
+    t = clock() - t;
+    cout << " QRP done\n";
     secretState state = setup(512, 64);
     cout << "SS done\n";
     CRS crs = getCRS(qrp, state);
@@ -141,10 +144,36 @@ void testMatrixMultCircuit(Circuit c) {
     assert (verify(qrp, state, crs, pi, input, output) == 1);
 }
 
+void testExceptionalSubset(long iterations) {
+    ZZ modulus = ZZ(1) << 64;
+    ZZ_p::init(modulus);
+
+
+    ZZ_pX P = ZZ_pX();
+    // P = x^4 + x + 1
+    SetCoeff(P, 0);
+    SetCoeff(P, 1);
+    SetCoeff(P, 4);
+
+    // P = x^32 + x^22 + x^2 + x^1 + 1
+    // SetCoeff(P, 0);
+    // SetCoeff(P, 1);
+    // SetCoeff(P, 22);
+    // SetCoeff(P, 32);
+
+    // instantiate GF(2^64, 4)
+    ZZ_pE::init(P);
+    cout << "modulus: " << P << "\n";
+
+    cout << getExceptionalSubset(iterations);
+}
+
 int main() {
     string path = "./out/matrix2.txt";
     path = "./out/n=10_m=10_k=10.txt";
     const Circuit c = circuitFromFile(path);
     // printCircuit(c);
     testMatrixMultCircuit(c);
+
+    testExceptionalSubset(1000);
 }

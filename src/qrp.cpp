@@ -13,18 +13,24 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates, ZZ_pEX& tar
     ZZ_pEX x;
     SetX(x);
     set(targetPolynomial);
-    Vec<ZZ_pE> exceptionalSubSet;
-    exceptionalSubSet.SetLength(numberOfMultiplicationGates);
+    cout << "Computing subset of exceptional set\n";
+    const Vec<ZZ_pE> exceptionalSubSet = getExceptionalSubset(numberOfMultiplicationGates);
+    cout << "Subset of exceptional set computed\n";
+    const Vec<ZZ_pEX> termsOfT = getTargetPolynomialTerms(numberOfMultiplicationGates);
+    cout << "terms of t computed\n";
+    // Vec<ZZ_pE> exceptionalSubSet;
+    // exceptionalSubSet.SetLength(numberOfMultiplicationGates);
     for (long i = 0; i < numberOfMultiplicationGates; i++)  {
-        cout << "Compute exceptional elements and target: " << i << endl;
-        const ZZ_pE exceptionalElement = indexedElementInExceptionalSet(i);
-        exceptionalSubSet[i] = exceptionalElement;
-        targetPolynomial *= x - exceptionalElement;
+        // cout << "Compute exceptional elements and target: " << i << endl;
+        // const ZZ_pE exceptionalElement = exceptionalSubSet[i];
+        // targetPolynomial *= x - exceptionalElement;
+        targetPolynomial *= termsOfT[i];//todo I think this was slower
     }
+    cout << "Target polynomial computed\n";
 
     ZZ_pE denominator;
     for (long i = 0; i < numberOfMultiplicationGates; i++)  {
-        cout << "Compute deltas: " << i << endl;
+        // cout << "Compute deltas: " << i << endl;
         const ZZ_pEX numerator = targetPolynomial / (x - exceptionalSubSet[i]);
         set(denominator);
         for (long j = 0; j < numberOfMultiplicationGates; j++)  {
@@ -34,6 +40,7 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates, ZZ_pEX& tar
         }
         deltas[i] = numerator * getInverse(denominator);
     }
+    cout << "Deltas computed\n";
 
     return deltas;
 }

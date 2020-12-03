@@ -1,4 +1,5 @@
 #include <NTL/ZZ_pE.h>
+#include <NTL/ZZ_pEX.h>
 #include <NTL/ZZX.h>
 
 using namespace NTL;
@@ -23,18 +24,33 @@ ZZ_pE indexedElementInExceptionalSet(long index) {
     for (int i = 0; i < ZZ_pE::degree(); i++) {
         long mask = 1 << i;
         if ((mask & index) != 0) {
-            SetCoeff(res, i, 1);
+            SetCoeff(res, i);
         }
     }
     return to_ZZ_pE(res);
 }
 
-Vec<ZZ_pE> exceptionalSubset(long size) {
+Vec<ZZ_pE> getExceptionalSubset(long size) {
     Vec<ZZ_pE> elms;
     elms.SetLength(size);
 
     for (long i = 0; i < size; i++) {
         elms[i] = indexedElementInExceptionalSet(i);
+    }
+
+    return elms;
+}
+
+Vec<ZZ_pEX> getTargetPolynomialTerms(long size) {
+    Vec<ZZ_pEX> elms;
+    elms.SetLength(size);
+
+    for (long i = 0; i < size; i++) {
+        std::cout << i << std::endl;
+        ZZ_pEX term;
+        SetX(term);
+        SetCoeff(term, 0, -indexedElementInExceptionalSet(i));
+        elms[i] = term;
     }
 
     return elms;

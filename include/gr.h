@@ -10,6 +10,10 @@ ZZ_pE randomInvertible();
 
 ZZ_pE indexedElementInExceptionalSet(long index);
 
+Vec<ZZ_pE> getExceptionalSubset(long size);
+
+Vec<ZZ_pEX> getTargetPolynomialTerms(long size);
+
 // Random element in A
 ZZ_pE randomInExceptionalSet();
 

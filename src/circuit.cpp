@@ -8,18 +8,20 @@
 using namespace NTL;
 using namespace std;
 
-Vec<ZZ_p> eval(Circuit circuit, Vec<ZZ_p> input) {
+Vec<ZZ_p> eval(Circuit circuit, const Vec<ZZ_p> input) {
     Vec<ZZ_p> allWireValues = Vec<ZZ_p>(input);
     allWireValues.SetLength(circuit.numberOfWires);
     for (int k = 0; k < circuit.numberOfMultiplicationGates; k++) {
-        Gate kthGate = circuit.gates[k];
+        cout << "Evaluating wire " << k << endl;
+        const vector<long> leftInputs = circuit.gates[k].leftInputs;
+        const vector<long> rightInputs = circuit.gates[k].rightInputs;
         ZZ_p leftInputSum;
-        for (int i = 0; i < kthGate.leftInputs.size(); i++) {
-            leftInputSum += allWireValues[kthGate.leftInputs[i]];
+        for (long i = 0; i < leftInputs.size(); i++) {
+            leftInputSum += allWireValues[leftInputs[i]];
         }
         ZZ_p rightInputSum;
-        for (int i = 0; i < kthGate.rightInputs.size(); i++) {
-            rightInputSum += allWireValues[kthGate.rightInputs[i]];
+        for (long i = 0; i < rightInputs.size(); i++) {
+            rightInputSum += allWireValues[rightInputs[i]];
         }
         allWireValues[k + circuit.numberOfInputWires] = leftInputSum * rightInputSum;
     }

@@ -13,6 +13,8 @@
 #include <rinocchio.h>
 #include <joye_libert.h>
 
+#include <time.h>
+
 using namespace std;
 using namespace NTL;
 
