@@ -40,7 +40,7 @@ ZZ_pE D(Vec<ZZ> y) {
     return conv<ZZ_pE>(x);
 }
 
-CRS getCRS(QRP prog, secretState ss) {
+CRS getCRS(const QRP& prog, const secretState& ss) {
     
     //{E(S^i)}_i=0^d
     //{E(alpha * S^i)}_i=0^d
@@ -104,7 +104,7 @@ CRS getCRS(QRP prog, secretState ss) {
     }
     //pk
 
-    CRS crs;
+    CRS crs;//Todo is it significantly faster not to copy here?
     crs.rvVofS = rvVofS;
     crs.rwWofS = rwWofS;
     crs.ryYofS = ryYofS;
@@ -134,8 +134,8 @@ Vec<ZZ> vecadd(const Vec<ZZ>& a, const Vec<ZZ>& b) {
     return res;
 }
 
-Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
-
+Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
+    cout << "Start prove\n";
 
     // Compute p = V*W-Y
     // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
@@ -144,16 +144,15 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
         V += allWireValues[k] * prog.V[k];
         W += allWireValues[k] * prog.W[k];
         Y += allWireValues[k] * prog.Y[k];
-        ZZ_pEX Piter = V * W - Y;
-        // if (IsZero(Piter)) cout << "0" << endl;
-        // else  cout << "not 0" << endl;
     }
+    cout << "V, W and Y computed\n";
     // cout << V*W << "V*W" << endl;
     ZZ_pEX P = V*W-Y;
     // cout << P << "P" << endl;
 
     // Compute h = p / t
     ZZ_pEX H = P / prog.t;
+    cout << "H computed\n";
 
 
     // E(r_v * Vmid(S))
@@ -196,6 +195,7 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
         // betaSum += rep(allWireValues[k]) * crs.betaSums[k - prog.midOffset];
 
     }
+    cout << "mid polynomials computed\n";
 
     // E(h(s))
     // E(alpha * h(s))
@@ -204,14 +204,15 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
     JLEncoding vec_hOfS, vec_alphaHofS;
     for (int i = 0 ; i <= deg(H); i++) {
         //todo How do we know that the degree of H is at most the number of multiplication gates?
-        Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep);
+        Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep); //todo is this often zero?
         JLEncoding ihs = PlainMulEncryption(crs.powersOfS[i], ithCoeffOfH, crs.publicKey);
         JLEncoding iahs = PlainMulEncryption(crs.powersOfSMultAlpha[i], ithCoeffOfH, crs.publicKey);
+        //Todo computing the reduction would make the next step twice as fast. (And a shorter proof)
         // cout << ihs << "ihs"<< endl;
         jle_add_assign(vec_hOfS, ihs, crs.publicKey);
         jle_add_assign(vec_alphaHofS, iahs, crs.publicKey);
-        //todo should we reduce the degree of the encodings - and how?
     }
+    cout << "H(s) computed\n";//slow
 
     return Proof{
         .rvVmidOfS = rvVmidOfS,
@@ -226,7 +227,8 @@ Proof prove(QRP prog, CRS crs, Vec<ZZ_p> allWireValues) {
     };
 }
 
-bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec<ZZ_p> output) {
+bool verify(const QRP& qrp, const secretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output) {
+    cout << "Verify start\n";
     ZZ_pE rvVmidOfS = decode(pi.rvVmidOfS, secret.secretKey);
     ZZ_pE rwWmidOfS = decode(pi.rwWmidOfS, secret.secretKey);
     ZZ_pE ryYmidOfS = decode(pi.ryYmidOfS, secret.secretKey);

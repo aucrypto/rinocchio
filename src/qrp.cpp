@@ -17,7 +17,7 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates, ZZ_pEX& tar
     const Vec<ZZ_pE> exceptionalSubSet = getExceptionalSubset(numberOfMultiplicationGates);
     cout << "Subset of exceptional set computed\n";
     const Vec<ZZ_pEX> termsOfT = getTargetPolynomialTerms(numberOfMultiplicationGates);
-    cout << "terms of t computed\n";
+    cout << "terms of t computed\n"; //We get here very fast
     // Vec<ZZ_pE> exceptionalSubSet;
     // exceptionalSubSet.SetLength(numberOfMultiplicationGates);
     for (long i = 0; i < numberOfMultiplicationGates; i++)  {
@@ -26,7 +26,7 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates, ZZ_pEX& tar
         // targetPolynomial *= x - exceptionalElement;
         targetPolynomial *= termsOfT[i];//todo I think this was slower
     }
-    cout << "Target polynomial computed\n";
+    cout << "Target polynomial computed\n";//slow, would using a c style array be any faster?
 
     ZZ_pE denominator;
     for (long i = 0; i < numberOfMultiplicationGates; i++)  {
@@ -40,7 +40,7 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates, ZZ_pEX& tar
         }
         deltas[i] = numerator * getInverse(denominator);
     }
-    cout << "Deltas computed\n";
+    cout << "Deltas computed\n";//slow
 
     return deltas;
 }
@@ -59,14 +59,11 @@ QRP getQRP(const Circuit& circuit) {
     SetX(x);
     
     for (int k = 0; k < circuit.numberOfMultiplicationGates; k++) {
-        cout << "Compute " << k << endl;
-
-        Gate kthMultGate =  circuit.gates[k];
 
         int nextLeftInput = 0;
         int nextRightInput = 0;
-        vector<long> leftInputs = kthMultGate.leftInputs;
-        vector<long> rightInputs = kthMultGate.rightInputs;
+        vector<long> leftInputs = circuit.gates[k].leftInputs;
+        vector<long> rightInputs = circuit.gates[k].rightInputs;
         for (int j = 0; j < circuit.numberOfWires; j++) {
             if (j == k + circuit.numberOfInputWires) {
                 Y[j] += deltas[k];
@@ -86,14 +83,16 @@ QRP getQRP(const Circuit& circuit) {
             }
         }
     }
+    cout << "V, W and Y computed\n";
     
     QRP qrp;
     qrp.circuit = circuit;
     qrp.midOffset = circuit.numberOfInputWires;
     qrp.outOffset = circuit.numberOfWires - circuit.numberOfOutputWires;
-    qrp.t  = targetPolynomial;
+    qrp.t = targetPolynomial;
     qrp.V = V;
     qrp.W = W;
     qrp.Y = Y;
+    cout << "qrp function exit\n";
     return qrp;
 }

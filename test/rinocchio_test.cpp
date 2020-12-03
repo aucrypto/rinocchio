@@ -24,7 +24,7 @@
 using namespace std;
 using namespace NTL;
 
-void testMatrixMultCircuit(Circuit c);
+void testMatrixMultCircuit(const Circuit& c);
 
 void basicExample() {
 
@@ -98,7 +98,7 @@ Circuit circuitFromFile(string path) {
     return c;
 }
 
-void testMatrixMultCircuit(Circuit c) {
+void testMatrixMultCircuit(const Circuit& c) {
     ZZ modulus = ZZ(1) << 64;
     ZZ_p::init(modulus);
 
@@ -117,27 +117,29 @@ void testMatrixMultCircuit(Circuit c) {
     clock_t t;
     const QRP qrp = getQRP(c);
     t = clock() - t;
-    cout << " QRP done\n";
+    cout << "QRP done\n";
     secretState state = setup(512, 64);
-    cout << "SS done\n";
+    cout << "Secret done\n";
     CRS crs = getCRS(qrp, state);
     cout << "CRS done\n";
     Vec<ZZ_p> input;
     input.SetLength(c.numberOfInputWires);
     input[0] = ZZ_p(1);
     for (long i = 1; i < c.numberOfInputWires; i++) {
-        input[i] = ZZ_p(i);
+        input[i] = to_ZZ_p(RandomBits_ZZ(64));
     }
+    cout << "input drawn\n";
 
     Vec<ZZ_p> allWireValues = eval(c, input);
-    cout << allWireValues << "all wires\n";
+    cout << "Circuit evaluated\n";
+    // cout << allWireValues << "all wires\n";
 
     Vec<ZZ_p> output;
     output.SetLength(c.numberOfOutputWires);
     for (long i = 0; i < c.numberOfOutputWires; i++) {
         output[i] = allWireValues[i + qrp.outOffset];
     }
-    cout << output << "output\n";
+    cout << "Output\n";
 
     Proof pi = prove(qrp, crs, allWireValues);
 
@@ -175,5 +177,5 @@ int main() {
     // printCircuit(c);
     testMatrixMultCircuit(c);
 
-    testExceptionalSubset(1000);
+    // testExceptionalSubset(1000);
 }

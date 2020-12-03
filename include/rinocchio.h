@@ -10,12 +10,6 @@
 
 using namespace NTL;
 
-//dummy encryption:
-Vec<ZZ> E(ZZ_pE x);
-
-// dummy decryption
-ZZ_pE D(Vec<ZZ> y);
-
 struct CRS {
     Vec<JLEncoding> powersOfS;
     Vec<JLEncoding> powersOfSMultAlpha;
@@ -29,7 +23,7 @@ struct CRS {
     JLEncodingKey publicKey; //todo separate public/secret
 };
 
-CRS getCRS(QRP prog, secretState ss);
+CRS getCRS(const QRP& prog, const secretState& ss);
 
 struct Proof {
     JLEncoding rvVmidOfS;
@@ -43,9 +37,9 @@ struct Proof {
     JLEncoding alphaHOfS;
 };
 
-Proof prove(QRP prog, CRS crs, Vec<ZZ_p> input);
+Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues);
 
-bool verify(QRP qrp, secretState secret, CRS crs, Proof pi, Vec<ZZ_p> input, Vec<ZZ_p> output);
+bool verify(const QRP& qrp, const secretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output);
 
 
 

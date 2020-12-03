@@ -46,7 +46,6 @@ Vec<ZZ_pEX> getTargetPolynomialTerms(long size) {
     elms.SetLength(size);
 
     for (long i = 0; i < size; i++) {
-        std::cout << i << std::endl;
         ZZ_pEX term;
         SetX(term);
         SetCoeff(term, 0, -indexedElementInExceptionalSet(i));

@@ -37,13 +37,13 @@ ZZ_pE decode(const JLEncoding& c, const JLEncodingKey& key);
 void jle_add_assign(JLEncoding& a, const JLEncoding& b, const JLEncodingKey& key);
 
 void jle_scalar_mult_assign(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key);
-inline JLEncoding jle_scalar_mult(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key) { JLEncoding res = a; jle_scalar_mult_assign(res, scalar, key); return res;}
+inline JLEncoding jle_scalar_mult(const JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key) { JLEncoding res = a; jle_scalar_mult_assign(res, scalar, key); return res;}
 
 // JLEncoding jle_scalar_mult(JLEncoding& a, const ZZ& scalar, const JLEncodingKey& key);
 
 JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key);
 
-JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key);
+JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key);
 
 ostream& operator<<(ostream& s, const JLEncoding& jle);
 

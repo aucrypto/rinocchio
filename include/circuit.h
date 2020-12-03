@@ -26,6 +26,6 @@ void printCircuit(const Circuit& circuit);
 ostream& operator<<(ostream& s, const Circuit& circuit);
 istream& operator>>(istream& s, Circuit& circuit);
 
-Vec<ZZ_p> eval(Circuit circuit, Vec<ZZ_p> input);
+Vec<ZZ_p> eval(const Circuit& circuit, const Vec<ZZ_p>& input);
 
 #endif

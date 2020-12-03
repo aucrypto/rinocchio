@@ -205,7 +205,7 @@ JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& 
     return JLEncoding{.coeffs = res}; 
 }
 //todo compare multiplications
-JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, JLEncodingKey& key) {
+JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key) {
     JLEncoding res;
     long da = a.coeffs.length() - 1;
     long db = b.length() - 1;
