@@ -13,6 +13,10 @@
 #include <setup.h>
 #include <rinocchio.h>
 
+#include <fstream>
+#include <sstream>
+#include <string>
+
 #include <assert.h>
 
 using namespace std;
@@ -61,7 +65,20 @@ int main() {
     circuit.gates.push_back(g4);
     circuit.gates.push_back(g5);
 
-    cout << circuit;
+    stringstream stream;
+    stream << circuit;
+    Circuit cread;
+    stream >> cread;
+    printCircuit(cread);
+
+    ifstream File;
+    File.open("./out/matrix2.txt", ios::in);
+    if (File) {
+        Circuit fc;
+        File >> fc;
+        printCircuit(fc);
+
+    }
 
     QRP qrp = getQRP(circuit);
     secretState state = setup(512, 64);

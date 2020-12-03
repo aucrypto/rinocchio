@@ -3,18 +3,17 @@ import json
 
 
 def build_circuit(n, m, k):
-    number_of_inputs = n*m + m*k
+    number_of_inputs = n*m + m*k + 1
     number_of_outputs = n*k
     number_of_mid_wires = n*k*m     # One for each initial mult-gate
-    number_of_mult_gates = number_of_mid_wires + number_of_outputs  # We get an extra *1 for each sum (one for each output)
     number_of_wires = number_of_inputs + number_of_mid_wires + number_of_outputs
     mult_gates = []
 
     for i in range(n):
         for j in range(k):
             for l in range(m):
-                a_index = m * i + l
-                b_index = n*m + k * l + j
+                a_index = m * i + l + 1
+                b_index = n*m + k * l + j + 1
                 mult_gates.append(([a_index], [b_index]))
 
     for i in range(n):
@@ -24,14 +23,12 @@ def build_circuit(n, m, k):
             for l in range(m):
                 index = start_index + l
                 mult_wires.append(index)
-            mult_gates.append((mult_wires, []))  # Empty list means *1
+            mult_gates.append((mult_wires, [0]))  # Empty list means *1
 
     circuit = {
         "numberOfWires": number_of_wires,
         "numberOfInputWires": number_of_inputs,
-        "numberOfMidWires": number_of_mid_wires,
         "numberOfOutputWires": number_of_outputs,
-        "numberOfMultiplicationGates": number_of_mult_gates,
         "gates": mult_gates
     }
     
@@ -42,7 +39,7 @@ def eval(circuit, input):
     wire_values = []
     for i in range(circuit["numberOfInputWires"]):
         wire_values.append(input[i])
-    for i in range(circuit["numberOfMultiplicationGates"]):
+    for i in range(circuit["numberOfWires"] - circuit["numberOfInputWires"]):
         left_wires = circuit["gates"][i][0]
         right_wires = circuit["gates"][i][1]
         left = 0
@@ -61,7 +58,7 @@ def eval(circuit, input):
 def matrix_eval(circuit, A, B):
     A_flat = A.flatten().tolist()
     B_flat = B.flatten().tolist()
-    input = A_flat + B_flat
+    input = [1] + A_flat + B_flat
     print(input)
     return eval(circuit, input)
 
@@ -73,19 +70,17 @@ def output_json(circuit):
 def output_text(circuit):
     file = open("../out/matrix2.txt", "w")
     file.write(str(circuit["numberOfWires"]))
-    file.write("\n")
+    file.write(" ")
     file.write(str(circuit["numberOfInputWires"]))
-    file.write("\n")
-    file.write(str(circuit["numberOfMidWires"]))
-    file.write("\n")
+    file.write(" ")
     file.write(str(circuit["numberOfOutputWires"]))
     file.write("\n")
-    file.write(str(circuit["numberOfMultiplicationGates"]))
-    file.write("\n")
     for gate in circuit["gates"]:
-        file.write(str(gate[0]))
-        file.write(", ")
-        file.write(str(gate[1]))
+        file.write(str(len(gate[0])) + " ")
+        file.write(str(len(gate[1])) + " ")
+        file.write(" ".join(map(str, gate[0])))
+        file.write(" ")
+        file.write(" ".join(map(str, gate[1])))
         file.write("\n")
     file.close()
 
@@ -97,3 +92,5 @@ if __name__ == "__main__":
     circuit = build_circuit(2,2,2)
     
     output_text(circuit)
+
+    # print(matrix_eval(circuit, A, B))
