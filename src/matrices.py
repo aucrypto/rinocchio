@@ -67,8 +67,8 @@ def output_json(circuit):
     file.write(json.dumps(circuit))
     file.close()
 
-def output_text(circuit):
-    file = open("../out/matrix2.txt", "w")
+def output_text(circuit, name):
+    file = open("../out/%s.txt" % name, "w")
     file.write(str(circuit["numberOfWires"]))
     file.write(" ")
     file.write(str(circuit["numberOfInputWires"]))
@@ -89,8 +89,11 @@ if __name__ == "__main__":
     A = np.array([[1,2], [3,4]])
     B = np.array([[2,0], [0,2]])
     
-    circuit = build_circuit(2,2,2)
+    n = 10
+    m = 10
+    k = 10
+    circuit = build_circuit(n, m, k)
     
-    output_text(circuit)
+    output_text(circuit, "n=%d_m=%d_k=%d" %(n, m, k))
 
     # print(matrix_eval(circuit, A, B))

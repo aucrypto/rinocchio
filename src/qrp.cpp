@@ -6,22 +6,31 @@
 using namespace NTL;
 using namespace std;
 
-Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates) {
+Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates, ZZ_pEX& targetPolynomial) {
     Vec<ZZ_pEX> deltas;
     deltas.SetLength(numberOfMultiplicationGates);
 
-    //todo we could generate all the needed elements of the exceptional set only once, and more efficiently
-    ZZ_pEX x, numerator;
-    ZZ_pE denominator;
+    ZZ_pEX x;
     SetX(x);
+    set(targetPolynomial);
+    Vec<ZZ_pE> exceptionalSubSet;
+    exceptionalSubSet.SetLength(numberOfMultiplicationGates);
     for (long i = 0; i < numberOfMultiplicationGates; i++)  {
-        set(numerator);
+        cout << "Compute exceptional elements and target: " << i << endl;
+        const ZZ_pE exceptionalElement = indexedElementInExceptionalSet(i);
+        exceptionalSubSet[i] = exceptionalElement;
+        targetPolynomial *= x - exceptionalElement;
+    }
+
+    ZZ_pE denominator;
+    for (long i = 0; i < numberOfMultiplicationGates; i++)  {
+        cout << "Compute deltas: " << i << endl;
+        const ZZ_pEX numerator = targetPolynomial / (x - exceptionalSubSet[i]);
         set(denominator);
         for (long j = 0; j < numberOfMultiplicationGates; j++)  {
             if (i == j) continue;
 
-            numerator *= x - indexedElementInExceptionalSet(j);
-            denominator *= indexedElementInExceptionalSet(i) - indexedElementInExceptionalSet(j);
+            denominator *= exceptionalSubSet[i] - exceptionalSubSet[j];
         }
         deltas[i] = numerator * getInverse(denominator);
     }
@@ -31,22 +40,19 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates) {
 
 QRP getQRP(const Circuit& circuit) {
     //Pick distinct elements of exceptional set for each gate:
-    Vec<ZZ_pEX> deltas = getInterpolationDeltas(circuit.numberOfMultiplicationGates);
+    ZZ_pEX targetPolynomial;
+    Vec<ZZ_pEX> deltas = getInterpolationDeltas(circuit.numberOfMultiplicationGates, targetPolynomial);
 
     Vec<ZZ_pEX> V, W, Y;
     V.SetLength(circuit.numberOfWires);
     W.SetLength(circuit.numberOfWires);
     Y.SetLength(circuit.numberOfWires);
 
-    // Compute t(x) = (x - g_1) * (x - g_2) ...
-    ZZ_pEX t = conv<ZZ_pEX>(1);
     ZZ_pEX x;
     SetX(x);
     
     for (int k = 0; k < circuit.numberOfMultiplicationGates; k++) {
-
-        //target polynomial:
-        t *= x - indexedElementInExceptionalSet(k); // this is used when generating deltas as well
+        cout << "Compute " << k << endl;
 
         Gate kthMultGate =  circuit.gates[k];
 
@@ -78,7 +84,7 @@ QRP getQRP(const Circuit& circuit) {
     qrp.circuit = circuit;
     qrp.midOffset = circuit.numberOfInputWires;
     qrp.outOffset = circuit.numberOfWires - circuit.numberOfOutputWires;
-    qrp.t  = t;
+    qrp.t  = targetPolynomial;
     qrp.V = V;
     qrp.W = W;
     qrp.Y = Y;

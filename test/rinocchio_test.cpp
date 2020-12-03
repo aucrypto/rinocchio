@@ -92,6 +92,7 @@ Circuit circuitFromFile(string path) {
     if (File) {
         File >> c;
     }
+    File.close();
     return c;
 }
 
@@ -113,8 +114,11 @@ void testMatrixMultCircuit(Circuit c) {
     cout << "modulus: " << P << "\n";
 
     const QRP qrp = getQRP(c);
+    cout << "QRP done\n";
     secretState state = setup(512, 64);
+    cout << "SS done\n";
     CRS crs = getCRS(qrp, state);
+    cout << "CRS done\n";
     Vec<ZZ_p> input;
     input.SetLength(c.numberOfInputWires);
     input[0] = ZZ_p(1);
@@ -124,7 +128,6 @@ void testMatrixMultCircuit(Circuit c) {
 
     Vec<ZZ_p> allWireValues = eval(c, input);
     cout << allWireValues << "all wires\n";
-    Proof pi = prove(qrp, crs, allWireValues);
 
     Vec<ZZ_p> output;
     output.SetLength(c.numberOfOutputWires);
@@ -133,13 +136,14 @@ void testMatrixMultCircuit(Circuit c) {
     }
     cout << output << "output\n";
 
+    Proof pi = prove(qrp, crs, allWireValues);
+
     assert (verify(qrp, state, crs, pi, input, output) == 1);
 }
 
 int main() {
-    // basicExample();
-
     string path = "./out/matrix2.txt";
+    path = "./out/n=10_m=10_k=10.txt";
     const Circuit c = circuitFromFile(path);
     // printCircuit(c);
     testMatrixMultCircuit(c);

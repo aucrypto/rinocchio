@@ -29,6 +29,17 @@ ZZ_pE indexedElementInExceptionalSet(long index) {
     return to_ZZ_pE(res);
 }
 
+Vec<ZZ_pE> exceptionalSubset(long size) {
+    Vec<ZZ_pE> elms;
+    elms.SetLength(size);
+
+    for (long i = 0; i < size; i++) {
+        elms[i] = indexedElementInExceptionalSet(i);
+    }
+
+    return elms;
+}
+
 // Random element in A
 ZZ_pE randomInExceptionalSet() {
     ZZ_pX a = ZZ_pX();
@@ -42,6 +53,7 @@ ZZ_pE randomInExceptionalSet() {
     ZZ_pE fromPX = to_ZZ_pE(a);
     return fromPX;
 }
+
 
 // Random element in A*
 ZZ_pE randomNonZeroInExceptionalSet() {
