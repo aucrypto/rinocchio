@@ -135,24 +135,29 @@ Vec<ZZ> vecadd(const Vec<ZZ>& a, const Vec<ZZ>& b) {
 }
 
 Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
-    cout << "Start prove\n";
-
+    cout << "Start prove...\n";
+    clock_t t;
     // Compute p = V*W-Y
     // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
+    t = clock();
     ZZ_pEX V, W, Y;
     for (int k = 0; k < prog.circuit.numberOfWires; k++) {
         V += allWireValues[k] * prog.V[k];
         W += allWireValues[k] * prog.W[k];
         Y += allWireValues[k] * prog.Y[k];
     }
-    cout << "V, W and Y computed\n";
+    t = clock() - t;
+    cout << "V, W and Y computed: " << t / CLOCKS_PER_SEC << " seconds\n";
     // cout << V*W << "V*W" << endl;
+
+    t = clock();
     ZZ_pEX P = V*W-Y;
     // cout << P << "P" << endl;
 
     // Compute h = p / t
     ZZ_pEX H = P / prog.t;
-    cout << "H computed\n";
+    t = clock() - t;
+    cout << "H computed: " << t / CLOCKS_PER_SEC << " seconds\n";
 
 
     // E(r_v * Vmid(S))
@@ -162,6 +167,7 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     // E(r_y * Ymid(S))
     // E(r_y * Ymid(S) * alpha_y)
     // E(beta( (r_v * Vmid(S)) + (r_w * Wmid(S)) +(r_y * Ymid(S)) ))
+    t = clock();
     JLEncoding rvVmidOfS;
     JLEncoding rwWmidOfS;
     JLEncoding ryYmidOfS;
@@ -195,12 +201,14 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
         // betaSum += rep(allWireValues[k]) * crs.betaSums[k - prog.midOffset];
 
     }
-    cout << "mid polynomials computed\n";
+    t = clock() - t;
+    cout << "mid polynomials computed: " << t / CLOCKS_PER_SEC << " seconds\n";
 
     // E(h(s))
     // E(alpha * h(s))
 
     // cout << H << "H" << endl;
+    t = clock();
     JLEncoding vec_hOfS, vec_alphaHofS;
     for (int i = 0 ; i <= deg(H); i++) {
         //todo How do we know that the degree of H is at most the number of multiplication gates?
@@ -212,7 +220,8 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
         jle_add_assign(vec_hOfS, ihs, crs.publicKey);
         jle_add_assign(vec_alphaHofS, iahs, crs.publicKey);
     }
-    cout << "H(s) computed\n";//slow
+    t = clock() - t;
+    cout << "H(s) computed: " << t / CLOCKS_PER_SEC << " seconds\n";//slow
 
     return Proof{
         .rvVmidOfS = rvVmidOfS,

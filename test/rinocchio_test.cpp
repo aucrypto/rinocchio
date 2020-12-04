@@ -114,24 +114,37 @@ void testMatrixMultCircuit(const Circuit& c) {
     // instantiate GF(2^64, 4)
     ZZ_pE::init(P);
     cout << "modulus: " << P << "\n";
+
     clock_t t;
+    t = clock();
     const QRP qrp = getQRP(c);
     t = clock() - t;
-    cout << "QRP done\n";
+    cout << "QRP done: " << t / CLOCKS_PER_SEC << " seconds\n";
+
+    t = clock();
     secretState state = setup(512, 64);
-    cout << "Secret done\n";
+    t = clock() - t;
+    cout << "Secret done: " << t / CLOCKS_PER_SEC << " seconds\n";
+
+    t = clock();
     CRS crs = getCRS(qrp, state);
-    cout << "CRS done\n";
+    t = clock() - t;
+    cout << "CRS done: " << t / CLOCKS_PER_SEC << " seconds\n";
+
+    t = clock();
     Vec<ZZ_p> input;
     input.SetLength(c.numberOfInputWires);
     input[0] = ZZ_p(1);
     for (long i = 1; i < c.numberOfInputWires; i++) {
         input[i] = to_ZZ_p(RandomBits_ZZ(64));
     }
-    cout << "input drawn\n";
+    t = clock() - t;
+    cout << "input drawn: " << t / CLOCKS_PER_SEC << " seconds\n";
 
+    t = clock();
     Vec<ZZ_p> allWireValues = eval(c, input);
-    cout << "Circuit evaluated\n";
+    t = clock() - t;
+    cout << "Circuit evaluated: " << t / CLOCKS_PER_SEC << " seconds\n";
     // cout << allWireValues << "all wires\n";
 
     Vec<ZZ_p> output;
@@ -139,11 +152,16 @@ void testMatrixMultCircuit(const Circuit& c) {
     for (long i = 0; i < c.numberOfOutputWires; i++) {
         output[i] = allWireValues[i + qrp.outOffset];
     }
-    cout << "Output\n";
 
+    t = clock();
     Proof pi = prove(qrp, crs, allWireValues);
+    t = clock() - t;
+    cout << "Proof done: " << t / CLOCKS_PER_SEC << " seconds\n";
 
+    t = clock();
     assert (verify(qrp, state, crs, pi, input, output) == 1);
+    t = clock() - t;
+    cout << "Verify done: " << t / CLOCKS_PER_SEC << " seconds\n";
 }
 
 void testExceptionalSubset(long iterations) {
