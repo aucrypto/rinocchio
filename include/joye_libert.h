@@ -45,6 +45,12 @@ JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& 
 
 JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key);
 
+ostream& operator<<(ostream& s, const JLEncodingKey& key);
+
+istream& operator>>(istream& s, JLEncodingKey& key);
+
 ostream& operator<<(ostream& s, const JLEncoding& jle);
+
+istream& operator>>(istream& s, JLEncoding& jle);
 
 #endif

@@ -237,6 +237,47 @@ JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const JLEnc
     return res;
 }
 
+ostream& operator<<(ostream& s, const JLEncodingKey& key) {
+    s << key.p_prime;
+    s << "\n";
+    s << key.p;
+    s << "\n";
+    s << key.n;
+    s << "\n";
+    s << key.g;
+    s << "\n";
+    s << key.D;
+    s << "\n";
+    s << key.pow2k;
+    s << "\n";
+    s << key.pow2k1;
+    s << "\n";
+    s << key.l;
+    s << "\n";
+    s << key.k;
+    s << "\n";
+
+    return s;
+}
+
+istream& operator>>(istream& s, JLEncodingKey& key) {
+    s >> key.p_prime;
+    s >> key.p;
+    s >> key.n;
+    s >> key.g;
+    s >> key.D;
+    s >> key.pow2k;
+    s >> key.pow2k1;
+    s >> key.l;
+    s >> key.k;    
+    
+    return s;
+}
+
 ostream& operator<<(ostream& s, const JLEncoding& jle) {
     return s << jle.coeffs;
+}
+
+istream& operator>>(istream& s, JLEncoding& jle) {
+    return s >> jle.coeffs;
 }

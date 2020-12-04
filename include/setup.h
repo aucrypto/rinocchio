@@ -8,9 +8,22 @@
 using namespace NTL;
 
 struct SecretState {
-    ZZ_pE s, r_v, r_w, r_y, alpha, alpha_v, alpha_w, alpha_y, beta;
-    Vec<ZZ_pE> inVofS, inWofS, inYofS, outVofS, outWofS, outYofS;
+    ZZ_pE s;
+    ZZ_pE r_v;
+    ZZ_pE r_w;
+    ZZ_pE r_y;
+    ZZ_pE alpha;
+    ZZ_pE alpha_v;
+    ZZ_pE alpha_w;
+    ZZ_pE alpha_y;
+    ZZ_pE beta;
     ZZ_pE tOfS;
+    Vec<ZZ_pE> inVofS;
+    Vec<ZZ_pE> inWofS;
+    Vec<ZZ_pE> inYofS;
+    Vec<ZZ_pE> outVofS;
+    Vec<ZZ_pE> outWofS;
+    Vec<ZZ_pE> outYofS;
     JLEncodingKey secretKey;
 };
 

@@ -141,18 +141,100 @@ CRS getCRS(const QRP& prog, const SecretState& ss) {
 
 
 ostream& operator<<(ostream& s, const SecretState& secretState)  {
+    s << secretState.s;
+    s << "\n";
+    s << secretState.r_v;
+    s << "\n";
+    s << secretState.r_w;
+    s << "\n";
+    s << secretState.r_y;
+    s << "\n";
+    s << secretState.alpha;
+    s << "\n";
+    s << secretState.alpha_v;
+    s << "\n";
+    s << secretState.alpha_w;
+    s << "\n";
+    s << secretState.alpha_y;
+    s << "\n";
+    s << secretState.beta;
+    s << "\n";
+    s << secretState.tOfS;
+    s << "\n";
+    s << secretState.inVofS;
+    s << "\n";
+    s << secretState.inWofS;
+    s << "\n";
+    s << secretState.inYofS;
+    s << "\n";
+    s << secretState.outVofS;
+    s << "\n";
+    s << secretState.outWofS;
+    s << "\n";
+    s << secretState.outYofS;
+    s << "\n";
+    s << secretState.secretKey;
+    s << "\n";
     return s;
 }
 
 istream& operator>>(istream& s, SecretState& secretState) {
+    s >> secretState.s;
+    s >> secretState.r_v;
+    s >> secretState.r_w;
+    s >> secretState.r_y;
+    s >> secretState.alpha;
+    s >> secretState.alpha_v;
+    s >> secretState.alpha_w;
+    s >> secretState.alpha_y;
+    s >> secretState.beta;
+    s >> secretState.tOfS;
+    s >> secretState.inVofS;
+    s >> secretState.inWofS;
+    s >> secretState.inYofS;
+    s >> secretState.outVofS;
+    s >> secretState.outWofS;
+    s >> secretState.outYofS;
+    s >> secretState.secretKey;
     return s;
 }
 
 
 ostream& operator<<(ostream& s, const CRS& crs) {
+    s << crs.powersOfS;
+    s << "\n";
+    s << crs.powersOfSMultAlpha;
+    s << "\n";
+    s << crs.rvVofS;
+    s << "\n";
+    s << crs.rwWofS;
+    s << "\n";
+    s << crs.ryYofS;
+    s << "\n";
+    s << crs.alpharvVofS;
+    s << "\n";
+    s << crs.alpharwWofS;
+    s << "\n";
+    s << crs.alpharyYofS;
+    s << "\n";
+    s << crs.betaSums; 
+    s << "\n";
+    s << crs.publicKey;
+    s << "\n";
+
     return s;
 }
 
 istream& operator>>(istream& s, CRS& crs) {
+    s >> crs.powersOfS;
+    s >> crs.powersOfSMultAlpha;
+    s >> crs.rvVofS;
+    s >> crs.rwWofS;
+    s >> crs.ryYofS;
+    s >> crs.alpharvVofS;
+    s >> crs.alpharwWofS;
+    s >> crs.alpharyYofS;
+    s >> crs.betaSums; 
+    s >> crs.publicKey;
     return s;
 }

@@ -147,6 +147,54 @@ QRP qrpFromFile(string path, bool& success) {
     return qrp;
 }
 
+void writeSecretState(const SecretState& ss, string path) {
+    ofstream File;
+    File.open(path, ios::out);
+    if (File) {
+        File << ss;
+    } else {
+        cout << "not file\n";
+    }
+}
+
+SecretState readSecretState(string path, bool& success) {
+    SecretState secretState;
+    ifstream File;
+    File.open(path, ios::in);
+    if (File) {
+        success = true;
+        File >> secretState;
+        File.close();
+    } else {
+        success = false;
+    }
+    return secretState;
+}
+
+void writeCRS(const CRS& crs, string path) {
+    ofstream File;
+    File.open(path, ios::out);
+    if (File) {
+        File << crs;
+    } else {
+        cout << "not file\n";
+    }
+}
+
+CRS readCRS(string path, bool& success) {
+    CRS crs;
+    ifstream File;
+    File.open(path, ios::in);
+    if (File) {
+        success = true;
+        File >> crs;
+        File.close();
+    } else {
+        success = false;
+    }
+    return crs;
+}
+
 QRP computeOrReadQRP(string qrpPath, string circuitPath) {
     bool readSuccess;
     QRP qrp = qrpFromFile(qrpPath, readSuccess);
@@ -174,18 +222,8 @@ QRP computeOrReadQRP(string qrpPath, string circuitPath) {
     return qrp;
 }
 
-void testMatrixMultCircuit(const QRP& qrp) {
+void testMatrixMultCircuit(const QRP& qrp, const SecretState& state, const CRS& crs) {
     clock_t t = clock();
-    SecretState state = setup(qrp, 512, 64);
-    t = clock() - t;
-    cout << "Secret done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
-
-    t = clock();
-    CRS crs = getCRS(qrp, state);
-    t = clock() - t;
-    cout << "CRS done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
-
-    t = clock();
     Vec<ZZ_p> input;
     input.SetLength(qrp.circuit.numberOfInputWires);
     input[0] = ZZ_p(1);
@@ -226,8 +264,27 @@ void testFile(string testName) {
     string circuitPath = outDir + testName +"_circuit.txt";
     string qrpPath = outDir + testName + "_qrp.txt";
     const QRP qrp = computeOrReadQRP(qrpPath, circuitPath);
+
+    clock_t t = clock();
+    bool success;
+    SecretState state = readSecretState(outDir + testName + "_secret.txt", success);
+    if (!success) {
+        state = setup(qrp, 512, 64);
+        writeSecretState(state, outDir + testName + "_secret.txt");
+    }
+    t = clock() - t;
+    cout << "Secret done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
     
-    testMatrixMultCircuit(qrp);
+    t = clock();
+    CRS crs = readCRS(outDir + testName + "_crs.txt", success);
+    if (!success) {
+        crs = getCRS(qrp, state);
+        writeCRS(crs, outDir + testName + "_crs.txt");
+    }
+    t = clock() - t;
+    cout << "CRS done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+    
+    testMatrixMultCircuit(qrp, state, crs);
 
 }
 
