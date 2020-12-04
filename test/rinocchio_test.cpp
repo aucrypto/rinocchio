@@ -232,6 +232,6 @@ void testFile(string testName) {
 }
 
 int main() {
-    // testFile("matrix2");
-    testFile("n=10_m=10_k=10");
+    testFile("n=2_m=2_k=2");
+    // testFile("n=10_m=10_k=10");
 }
