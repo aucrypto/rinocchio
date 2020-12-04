@@ -24,7 +24,30 @@
 using namespace std;
 using namespace NTL;
 
-void testMatrixMultCircuit(const Circuit& c);
+bool modulusSet = false;
+
+void init() {
+    if (modulusSet) return;
+    modulusSet = true;
+
+    ZZ modulus = ZZ(1) << 64;
+    ZZ_p::init(modulus);
+
+    ZZ_pX P = ZZ_pX();
+
+    // P = x^32 + x^22 + x^2 + x^1 + 1
+    SetCoeff(P, 0);
+    SetCoeff(P, 1);
+    SetCoeff(P, 2);
+    SetCoeff(P, 22);
+    SetCoeff(P, 32);
+
+    // instantiate GF(2^64, 4)
+    ZZ_pE::init(P);
+    cout << "modulus: " << P << "\n";
+}
+
+void testMatrixMultCircuit(const QRP& qrp);
 
 void basicExample() {
 
@@ -93,50 +116,85 @@ Circuit circuitFromFile(string path) {
     File.open(path, ios::in);
     if (File) {
         File >> c;
+        File.close();
+    } else {
+        cout << "not file\n";
     }
-    File.close();
     return c;
 }
 
-void testMatrixMultCircuit(const Circuit& c) {
-    ZZ modulus = ZZ(1) << 64;
-    ZZ_p::init(modulus);
+void writeQRP(const QRP& qrp, string path) {
+    ofstream File;
+    File.open(path, ios::out);
+    if (File) {
+        File << qrp;
+    } else {
+        cout << "not file\n";
+    }
+}
 
-    ZZ_pX P = ZZ_pX();
+QRP qrpFromFile(string path, bool& success) {
+    QRP qrp;
+    ifstream File;
+    File.open(path, ios::in);
+    if (File) {
+        success = true;
+        File >> qrp;
+        File.close();
+    } else {
+        success = false;
+    }
+    return qrp;
+}
 
-    // P = x^32 + x^22 + x^2 + x^1 + 1
-    SetCoeff(P, 0);
-    SetCoeff(P, 1);
-    SetCoeff(P, 2);
-    SetCoeff(P, 22);
-    SetCoeff(P, 32);
+QRP computeOrReadQRP(string qrpPath, string circuitPath) {
+    bool readSuccess;
+    QRP qrp = qrpFromFile(qrpPath, readSuccess);
+    if (!readSuccess) {
+        cout << "QRP file does not exist.\n";
+        Circuit c = circuitFromFile(circuitPath); //todo handle error
+        qrp = getQRP(c);
+        writeQRP(qrp, qrpPath);
+        cout << "QRP was computed and written to file.\n";
+        return qrp;
+    }
+    if (qrp.circuit.numberOfWires == 0
+        || qrp.circuit.numberOfMultiplicationGates != qrp.circuit.gates.size()
+        || qrp.circuit.numberOfWires != qrp.V.length()
+        || qrp.circuit.numberOfWires != qrp.W.length()
+        || qrp.circuit.numberOfWires != qrp.Y.length()) {
+            cout << "Read invalid QRP\n"; //todo maybe ask before overwriting
+            Circuit c = circuitFromFile(circuitPath); //todo handle error
+            qrp = getQRP(c);
+            writeQRP(qrp, qrpPath);
+            cout << "QRP was computed and written to file.\n";
+            return qrp;
+    }
+    cout << "QRP was read from file.\n";
+    return qrp;
+}
 
-    // instantiate GF(2^64, 4)
-    ZZ_pE::init(P);
-    cout << "modulus: " << P << "\n";
-    clock_t t;
-    const QRP qrp = getQRP(c);
-    t = clock() - t;
+void testMatrixMultCircuit(const QRP& qrp) {
     cout << "QRP done\n";
     secretState state = setup(512, 64);
     cout << "Secret done\n";
     CRS crs = getCRS(qrp, state);
     cout << "CRS done\n";
     Vec<ZZ_p> input;
-    input.SetLength(c.numberOfInputWires);
+    input.SetLength(qrp.circuit.numberOfInputWires);
     input[0] = ZZ_p(1);
-    for (long i = 1; i < c.numberOfInputWires; i++) {
+    for (long i = 1; i < qrp.circuit.numberOfInputWires; i++) {
         input[i] = to_ZZ_p(RandomBits_ZZ(64));
     }
     cout << "input drawn\n";
 
-    Vec<ZZ_p> allWireValues = eval(c, input);
+    Vec<ZZ_p> allWireValues = eval(qrp.circuit, input);
     cout << "Circuit evaluated\n";
     // cout << allWireValues << "all wires\n";
 
     Vec<ZZ_p> output;
-    output.SetLength(c.numberOfOutputWires);
-    for (long i = 0; i < c.numberOfOutputWires; i++) {
+    output.SetLength(qrp.circuit.numberOfOutputWires);
+    for (long i = 0; i < qrp.circuit.numberOfOutputWires; i++) {
         output[i] = allWireValues[i + qrp.outOffset];
     }
     cout << "Output\n";
@@ -146,36 +204,20 @@ void testMatrixMultCircuit(const Circuit& c) {
     assert (verify(qrp, state, crs, pi, input, output) == 1);
 }
 
-void testExceptionalSubset(long iterations) {
-    ZZ modulus = ZZ(1) << 64;
-    ZZ_p::init(modulus);
+void testFile(string testName) {
+    init();
 
 
-    ZZ_pX P = ZZ_pX();
-    // P = x^4 + x + 1
-    SetCoeff(P, 0);
-    SetCoeff(P, 1);
-    SetCoeff(P, 4);
+    string outDir = "./out/";
+    string circuitPath = outDir + testName +"_circuit.txt";
+    string qrpPath = outDir + testName + "_qrp.txt";
+    const QRP qrp = computeOrReadQRP(qrpPath, circuitPath);
+    
+    testMatrixMultCircuit(qrp);
 
-    // P = x^32 + x^22 + x^2 + x^1 + 1
-    // SetCoeff(P, 0);
-    // SetCoeff(P, 1);
-    // SetCoeff(P, 22);
-    // SetCoeff(P, 32);
-
-    // instantiate GF(2^64, 4)
-    ZZ_pE::init(P);
-    cout << "modulus: " << P << "\n";
-
-    cout << getExceptionalSubset(iterations);
 }
 
 int main() {
-    string path = "./out/matrix2.txt";
-    path = "./out/n=10_m=10_k=10.txt";
-    const Circuit c = circuitFromFile(path);
-    // printCircuit(c);
-    testMatrixMultCircuit(c);
-
-    // testExceptionalSubset(1000);
+    // testFile("matrix2");
+    testFile("n=10_m=10_k=10");
 }

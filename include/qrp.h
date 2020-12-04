@@ -21,4 +21,7 @@ struct QRP {
 
 QRP getQRP(const Circuit& circuit);
 
+ostream& operator<<(ostream& s, const QRP& qrp);
+istream& operator>>(istream& s, QRP& qrp);
+
 #endif

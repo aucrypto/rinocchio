@@ -96,3 +96,39 @@ QRP getQRP(const Circuit& circuit) {
     cout << "qrp function exit\n";
     return qrp;
 }
+
+
+ostream& operator<<(ostream& s, const QRP& qrp) {
+    s << qrp.circuit;
+    s << "\n";
+    s << qrp.midOffset;
+    s << "\n";
+    s << qrp.outOffset;
+    s << "\n";
+    s << qrp.t;
+    s << "\n";
+    s << qrp.V;
+    s << "\n";
+    s << qrp.W;
+    s << "\n";
+    s << qrp.Y;
+    s << "\n";
+
+    return s;
+}
+istream& operator>>(istream& s, QRP& qrp) {
+    s >> qrp.circuit;
+    // long next;
+    // if (!(s >> next)) {
+    //     cout << "not\n";
+    // }
+    //todo handle errors
+    s >> qrp.midOffset;
+    s >> qrp.outOffset;
+    s >> qrp.t;
+    s >> qrp.V;
+    s >> qrp.W;
+    s >> qrp.Y;
+
+    return s;
+}

@@ -83,7 +83,8 @@ istream& operator>>(istream& s, Circuit& c) {
     }
 
     long next;
-    while (s >> next) {
+    for (long i = 0; i < c.numberOfMultiplicationGates && (s >> next); i++)
+    {
         const long nlefts = next;
         if (!(s>> next)){
             return s; //todo error

@@ -205,6 +205,7 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     for (int i = 0 ; i <= deg(H); i++) {
         //todo How do we know that the degree of H is at most the number of multiplication gates?
         Vec<ZZ> ithCoeffOfH = to_vec_ZZ(rep(coeff(H, i)).rep); //todo is this often zero?
+        // cout << i << "th coeff of H:" << ithCoeffOfH << endl;
         JLEncoding ihs = PlainMulEncryption(crs.powersOfS[i], ithCoeffOfH, crs.publicKey);
         JLEncoding iahs = PlainMulEncryption(crs.powersOfSMultAlpha[i], ithCoeffOfH, crs.publicKey);
         //Todo computing the reduction would make the next step twice as fast. (And a shorter proof)
@@ -288,6 +289,6 @@ bool verify(const QRP& qrp, const secretState& secret, const CRS& crs, const Pro
         cout << "r_y * h*t: " << secret.r_y * hMultT << "\n";
         return false;
     }
-
+    cout << "Verified!\n";
     return  true;
 }
