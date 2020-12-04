@@ -93,7 +93,7 @@ void basicExample() {
     circuit.gates.push_back(g5);
 
     QRP qrp = getQRP(circuit);
-    secretState state = setup(512, 64);
+    SecretState state = setup(qrp, 512, 64);
     CRS crs = getCRS(qrp, state);
     Vec<ZZ_p> input;
     input.append(ZZ_p(3));
@@ -176,14 +176,14 @@ QRP computeOrReadQRP(string qrpPath, string circuitPath) {
 
 void testMatrixMultCircuit(const QRP& qrp) {
     clock_t t = clock();
-    secretState state = setup(512, 64);
+    SecretState state = setup(qrp, 512, 64);
     t = clock() - t;
-    cout << "Secret done: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "Secret done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
     t = clock();
     CRS crs = getCRS(qrp, state);
     t = clock() - t;
-    cout << "CRS done: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "CRS done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
     t = clock();
     Vec<ZZ_p> input;
@@ -193,12 +193,12 @@ void testMatrixMultCircuit(const QRP& qrp) {
         input[i] = to_ZZ_p(RandomBits_ZZ(64));
     }
     t = clock() - t;
-    cout << "input drawn: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "input drawn: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
     t = clock();
     Vec<ZZ_p> allWireValues = eval(qrp.circuit, input);
     t = clock() - t;
-    cout << "Circuit evaluated: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "Circuit evaluated: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
     // cout << allWireValues << "all wires\n";
 
     Vec<ZZ_p> output;
@@ -210,12 +210,12 @@ void testMatrixMultCircuit(const QRP& qrp) {
     t = clock();
     Proof pi = prove(qrp, crs, allWireValues);
     t = clock() - t;
-    cout << "Proof done: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "Proof done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
     t = clock();
     assert (verify(qrp, state, crs, pi, input, output) == 1);
     t = clock() - t;
-    cout << "Verify done: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "Verify done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 }
 
 void testFile(string testName) {
@@ -232,6 +232,6 @@ void testFile(string testName) {
 }
 
 int main() {
-    testFile("n=2_m=2_k=2");
-    // testFile("n=10_m=10_k=10");
+    string size = "10";
+    testFile(string("n=") + size +  "_m=" + size + "_k=" + size);
 }

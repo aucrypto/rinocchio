@@ -10,21 +10,6 @@
 
 using namespace NTL;
 
-struct CRS {
-    Vec<JLEncoding> powersOfS;
-    Vec<JLEncoding> powersOfSMultAlpha;
-    Vec<JLEncoding> rvVofS;
-    Vec<JLEncoding> rwWofS;
-    Vec<JLEncoding> ryYofS;
-    Vec<JLEncoding> alpharvVofS;
-    Vec<JLEncoding> alpharwWofS;
-    Vec<JLEncoding> alpharyYofS;
-    Vec<JLEncoding> betaSums; 
-    JLEncodingKey publicKey; //todo separate public/secret
-};
-
-CRS getCRS(const QRP& prog, const secretState& ss);
-
 struct Proof {
     JLEncoding rvVmidOfS;
     JLEncoding rwWmidOfS;
@@ -39,7 +24,7 @@ struct Proof {
 
 Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues);
 
-bool verify(const QRP& qrp, const secretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output);
+bool verify(const QRP& qrp, const SecretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output);
 
 
 

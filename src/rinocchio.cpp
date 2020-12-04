@@ -18,122 +18,6 @@
 using namespace std;
 using namespace NTL;
 
-//dummy encryption:
-Vec<ZZ> E(ZZ_pE x) {
-    Vec<ZZ> res;
-    // res = to_vec_ZZ(rep(x).rep);
-    for (int i = 0; i < ZZ_pE::degree(); i++) {
-        ZZ_p coeff;
-        GetCoeff(coeff, rep(x), i);//returns 0 if i out of range.
-        //Todo actually encrypt the coefficient under the ith pulic key.
-        res.append(rep(coeff));
-    }
-    return res;
-}
-
-// dummy decryption
-ZZ_pE D(Vec<ZZ> y) {
-    ZZ_pX x;
-    for (int i = 0; i < y.length(); i++) {
-        SetCoeff(x, i, conv<ZZ_p>(y[i]));
-    }
-    return conv<ZZ_pE>(x);
-}
-
-CRS getCRS(const QRP& prog, const secretState& ss) {
-    
-    //{E(S^i)}_i=0^d
-    //{E(alpha * S^i)}_i=0^d
-    Vec<JLEncoding> powersOfS;
-    Vec<JLEncoding> powersOfSMultAlpha;
-    {
-        ZZ_pE acc;
-        set(acc);
-        for (int i = 0; i <= prog.circuit.numberOfMultiplicationGates; i++) {//todo == d?
-            ZZ_pE ithPower = ZZ_pE(acc);
-            powersOfS.append(encode(ithPower, ss.secretKey));
-
-            ZZ_pE ithPowerMultAlpha = ss.alpha * ithPower;
-            powersOfSMultAlpha.append(encode(ithPowerMultAlpha, ss.secretKey));
-            
-            acc = acc * ss.s;
-        }
-    }
-
-
-    long sizeOfImid = prog.circuit.numberOfMidWires;
-    Vec<JLEncoding> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
-    rvVofS.SetLength(sizeOfImid);
-    rwWofS.SetLength(sizeOfImid);
-    ryYofS.SetLength(sizeOfImid);
-    alpharvVofS.SetLength(sizeOfImid);
-    alpharwWofS.SetLength(sizeOfImid);
-    alpharyYofS.SetLength(sizeOfImid);
-    betaSums.SetLength(sizeOfImid);
-
-    for (int k = 0; k < sizeOfImid; k++) {
-        //{E(r_v * v_k(S))}_k\in I_mid'
-        //{E(r_w * w_k(S))}_k\in I_mid
-        //{E(r_y * y_k(S))}_k\in I_mid
-        ZZ_pE rvVkofS, rwWkofS, ryYkofS;
-        eval(rvVkofS, prog.V[k+prog.midOffset], ss.s);
-        eval(rwWkofS, prog.W[k+prog.midOffset], ss.s);
-        eval(ryYkofS, prog.Y[k+prog.midOffset], ss.s);
-        mul(rvVkofS, rvVkofS, ss.r_v);
-        mul(rwWkofS, rwWkofS, ss.r_w);
-        mul(ryYkofS, ryYkofS, ss.r_y);
-        rvVofS[k] = encode(rvVkofS, ss.secretKey);
-        rwWofS[k] = encode(rwWkofS, ss.secretKey);
-        ryYofS[k] = encode(ryYkofS, ss.secretKey);
-            
-        //{E(alpha_v * r_v * v_k(S))}_k\in I_mid
-        //{E(alpha_w * r_w * w_k(S))}_k\in I_mid
-        //{E(alpha_y * r_y * y_k(S))}_k\in I_mid
-        ZZ_pE alpharvVkofS, alpharwWkofS, alpharyYkofS;
-        mul(alpharvVkofS, rvVkofS, ss.alpha_v);
-        mul(alpharwWkofS, rwWkofS, ss.alpha_w);
-        mul(alpharyYkofS, ryYkofS, ss.alpha_y);
-        alpharvVofS[k] = encode(alpharvVkofS, ss.secretKey);
-        alpharwWofS[k] = encode(alpharwWkofS, ss.secretKey);
-        alpharyYofS[k] = encode(alpharyYkofS, ss.secretKey);
-
-        //{E(beta ((r_v * v_k(S)) + (r_w * w_k(S)) + (r_y * y_k(S)))}_k\in I_mid
-        ZZ_pE kthBetaSum;
-        kthBetaSum = ss.beta * (rvVkofS + rwWkofS + ryYkofS);
-        betaSums[k] = encode(kthBetaSum, ss.secretKey);
-    }
-    //pk
-
-    CRS crs;//Todo is it significantly faster not to copy here?
-    crs.rvVofS = rvVofS;
-    crs.rwWofS = rwWofS;
-    crs.ryYofS = ryYofS;
-    crs.alpharvVofS = alpharvVofS;
-    crs.alpharwWofS = alpharwWofS;
-    crs.alpharyYofS = alpharyYofS;
-    crs.betaSums = betaSums;
-    crs.powersOfS = powersOfS;
-    crs.powersOfSMultAlpha = powersOfSMultAlpha;
-    crs.publicKey = ss.secretKey;//todo separate
-    return crs;
-}
-
-Vec<ZZ> vecadd(const Vec<ZZ>& a, const Vec<ZZ>& b) {
-    Vec<ZZ> res;
-    if (a.length() < b.length()) {
-        res = Vec<ZZ>(b);
-        for (int i = 0; i < a.length(); i++) {
-            res[i] += a[i];
-        }
-    } else {
-        res = Vec<ZZ>(a);
-        for (int i = 0; i < b.length(); i++) {
-            res[i] += b[i];
-        }
-    }
-    return res;
-}
-
 Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     cout << "Start prove...\n";
     clock_t t;
@@ -147,7 +31,7 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
         Y += allWireValues[k] * prog.Y[k];
     }
     t = clock() - t;
-    cout << "V, W and Y computed: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "V, W and Y computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
     // cout << V*W << "V*W" << endl;
 
     t = clock();
@@ -157,7 +41,7 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     // Compute h = p / t
     ZZ_pEX H = P / prog.t;
     t = clock() - t;
-    cout << "H computed: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "H computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
 
     // E(r_v * Vmid(S))
@@ -202,7 +86,7 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
 
     }
     t = clock() - t;
-    cout << "mid polynomials computed: " << t / CLOCKS_PER_SEC << " seconds\n";
+    cout << "mid polynomials computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
     // E(h(s))
     // E(alpha * h(s))
@@ -222,7 +106,7 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
         jle_add_assign(vec_alphaHofS, iahs, crs.publicKey);
     }
     t = clock() - t;
-    cout << "H(s) computed: " << t / CLOCKS_PER_SEC << " seconds\n";//slow
+    cout << "H(s) computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";//slow
 
     return Proof{
         .rvVmidOfS = rvVmidOfS,
@@ -237,14 +121,21 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     };
 }
 
-bool verify(const QRP& qrp, const secretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output) {
+bool verify(const QRP& qrp, const SecretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output) {
     cout << "Verify start\n";
+    clock_t t = clock();
     ZZ_pE rvVmidOfS = decode(pi.rvVmidOfS, secret.secretKey);
     ZZ_pE rwWmidOfS = decode(pi.rwWmidOfS, secret.secretKey);
     ZZ_pE ryYmidOfS = decode(pi.ryYmidOfS, secret.secretKey);
     ZZ_pE alphavrvVmidOfS = decode(pi.alphaVrvVmidOfS, secret.secretKey);
     ZZ_pE alphawrwWmidOfS = decode(pi.alphaWrwWmidOfS, secret.secretKey);
     ZZ_pE alphayryYmidOfS = decode(pi.alphaYryYmidOfS, secret.secretKey);
+    ZZ_pE betaSum = decode(pi.betaSum, secret.secretKey);
+    ZZ_pE hOfS = decode(pi.hOfS, secret.secretKey);
+    ZZ_pE alphaHOfS = decode(pi.alphaHOfS, secret.secretKey);
+    t = clock() - t;
+    cout << "done decoding, took " << ((double) t) / CLOCKS_PER_SEC << "\n";
+    t = clock();
     if (secret.alpha_v * rvVmidOfS != alphavrvVmidOfS) {
         cout << "alpha_v * r_v * v_mid(S) != \n";
         return false;
@@ -257,7 +148,6 @@ bool verify(const QRP& qrp, const secretState& secret, const CRS& crs, const Pro
         cout << "alpha_y * r_y * y_mid(S) != \n";
         return false;
     }
-    ZZ_pE betaSum = decode(pi.betaSum, secret.secretKey);
     ZZ_pE computedBetaSum = secret.beta * (rvVmidOfS + rwWmidOfS + ryYmidOfS);
 
     if (computedBetaSum != betaSum) {
@@ -265,34 +155,40 @@ bool verify(const QRP& qrp, const secretState& secret, const CRS& crs, const Pro
         return false;
     }
     
-    ZZ_pE hOfS = decode(pi.hOfS, secret.secretKey);
-    ZZ_pE alphaHOfS = decode(pi.alphaHOfS, secret.secretKey);
     if (secret.alpha * hOfS != alphaHOfS) {
         cout << "\n";
         return false;
     }
 
+    t = clock() - t;
+    cout << "done checking decodings, took " << ((double) t) / CLOCKS_PER_SEC << "\n";
+    cout << "Compute io polys\n";
+    t = clock();
     // compute P_in
     ZZ_pE v_io, w_io, y_io;
     for (int k = 0; k < input.length(); k++) {
-        v_io += input[k] * eval(qrp.V[k], secret.s);
-        w_io += input[k] * eval(qrp.W[k], secret.s);
-        y_io += input[k] * eval(qrp.Y[k], secret.s);
+        v_io += input[k] * secret.inVofS[k];
+        w_io += input[k] * secret.inWofS[k];
+        y_io += input[k] * secret.inYofS[k];
     }
     // add P_out
     for (int k = 0; k < output.length(); k++) {
-        v_io += output[k] * eval(qrp.V[k+qrp.outOffset], secret.s);
-        w_io += output[k] * eval(qrp.W[k+qrp.outOffset], secret.s);
-        y_io += output[k] * eval(qrp.Y[k+qrp.outOffset], secret.s);
+        v_io += output[k] * secret.outVofS[k];
+        w_io += output[k] * secret.outWofS[k];
+        y_io += output[k] * secret.outYofS[k];
     }
-
+    t = clock() - t;
+    cout << "done computing io, took " << ((double) t) / CLOCKS_PER_SEC << "\n";
+    t = clock();
     //r_y = r_v * r_w
     ZZ_pE computedV = secret.r_v * v_io + rvVmidOfS;
     ZZ_pE computedW = secret.r_w * w_io + rwWmidOfS;
     ZZ_pE computedY = secret.r_y * y_io + ryYmidOfS;
 
     ZZ_pE computedP = computedV * computedW - computedY;
-    ZZ_pE hMultT = hOfS * eval(qrp.t, secret.s);
+    ZZ_pE hMultT = hOfS * secret.tOfS;// todo eliminate eval
+    t = clock() - t;
+    cout << "done checking h, took " << ((double) t) / CLOCKS_PER_SEC << "\n";
     if (computedP != secret.r_y * hMultT) {
         cout << "compute P: " << computedP << "\n";
         cout << "r_y * h*t: " << secret.r_y * hMultT << "\n";
