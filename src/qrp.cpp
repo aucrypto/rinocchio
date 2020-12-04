@@ -3,6 +3,8 @@
 #include<NTL/ZZ_pE.h>
 #include<NTL/ZZX.h>
 
+#include<time.h>
+
 using namespace NTL;
 using namespace std;
 
@@ -13,21 +15,32 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates, ZZ_pEX& tar
     ZZ_pEX x;
     SetX(x);
     set(targetPolynomial);
-    cout << "Computing subset of exceptional set\n";
+
+    cout << "Computing subset of exceptional set...\n";
+    clock_t t;
     const Vec<ZZ_pE> exceptionalSubSet = getExceptionalSubset(numberOfMultiplicationGates);
-    cout << "Subset of exceptional set computed\n";
+    t = clock() - t;
+    cout << "Subset of exceptional set computed: " << t / CLOCKS_PER_SEC << " seconds\n";
+
+    t = clock();
     const Vec<ZZ_pEX> termsOfT = getTargetPolynomialTerms(numberOfMultiplicationGates);
-    cout << "terms of t computed\n"; //We get here very fast
+    cout << "terms of t computed: " << t / CLOCKS_PER_SEC << " seconds\n" ; 
+    //We get here very fast
+
     // Vec<ZZ_pE> exceptionalSubSet;
     // exceptionalSubSet.SetLength(numberOfMultiplicationGates);
+    t = clock();
     for (long i = 0; i < numberOfMultiplicationGates; i++)  {
         // cout << "Compute exceptional elements and target: " << i << endl;
         // const ZZ_pE exceptionalElement = exceptionalSubSet[i];
         // targetPolynomial *= x - exceptionalElement;
         targetPolynomial *= termsOfT[i];//todo I think this was slower
     }
-    cout << "Target polynomial computed\n";//slow, would using a c style array be any faster?
+    t = clock() - t;
+    cout << "Target polynomial computed: " << t / CLOCKS_PER_SEC << " seconds\n";
+    //slow, would using a c style array be any faster?
 
+    t = clock();
     ZZ_pE denominator;
     for (long i = 0; i < numberOfMultiplicationGates; i++)  {
         // cout << "Compute deltas: " << i << endl;
@@ -40,7 +53,8 @@ Vec<ZZ_pEX> getInterpolationDeltas(long numberOfMultiplicationGates, ZZ_pEX& tar
         }
         deltas[i] = numerator * getInverse(denominator);
     }
-    cout << "Deltas computed\n";//slow
+    t = clock() - t;
+    cout << "Deltas computed: " << t / CLOCKS_PER_SEC << " seconds\n";//slow
 
     return deltas;
 }
@@ -50,6 +64,7 @@ QRP getQRP(const Circuit& circuit) {
     ZZ_pEX targetPolynomial;
     Vec<ZZ_pEX> deltas = getInterpolationDeltas(circuit.numberOfMultiplicationGates, targetPolynomial);
 
+    clock_t t;
     Vec<ZZ_pEX> V, W, Y;
     V.SetLength(circuit.numberOfWires);
     W.SetLength(circuit.numberOfWires);
@@ -57,7 +72,7 @@ QRP getQRP(const Circuit& circuit) {
 
     ZZ_pEX x;
     SetX(x);
-    
+    t = clock();
     for (int k = 0; k < circuit.numberOfMultiplicationGates; k++) {
 
         int nextLeftInput = 0;
@@ -83,7 +98,8 @@ QRP getQRP(const Circuit& circuit) {
             }
         }
     }
-    cout << "V, W and Y computed\n";
+    t = clock() - t;
+    cout << "V, W and Y computed: " << t / CLOCKS_PER_SEC << " seconds\n";
     
     QRP qrp;
     qrp.circuit = circuit;

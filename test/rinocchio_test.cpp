@@ -175,21 +175,30 @@ QRP computeOrReadQRP(string qrpPath, string circuitPath) {
 }
 
 void testMatrixMultCircuit(const QRP& qrp) {
-    cout << "QRP done\n";
+    clock_t t = clock();
     secretState state = setup(512, 64);
-    cout << "Secret done\n";
+    t = clock() - t;
+    cout << "Secret done: " << t / CLOCKS_PER_SEC << " seconds\n";
+
+    t = clock();
     CRS crs = getCRS(qrp, state);
-    cout << "CRS done\n";
+    t = clock() - t;
+    cout << "CRS done: " << t / CLOCKS_PER_SEC << " seconds\n";
+
+    t = clock();
     Vec<ZZ_p> input;
     input.SetLength(qrp.circuit.numberOfInputWires);
     input[0] = ZZ_p(1);
     for (long i = 1; i < qrp.circuit.numberOfInputWires; i++) {
         input[i] = to_ZZ_p(RandomBits_ZZ(64));
     }
-    cout << "input drawn\n";
+    t = clock() - t;
+    cout << "input drawn: " << t / CLOCKS_PER_SEC << " seconds\n";
 
+    t = clock();
     Vec<ZZ_p> allWireValues = eval(qrp.circuit, input);
-    cout << "Circuit evaluated\n";
+    t = clock() - t;
+    cout << "Circuit evaluated: " << t / CLOCKS_PER_SEC << " seconds\n";
     // cout << allWireValues << "all wires\n";
 
     Vec<ZZ_p> output;
@@ -197,11 +206,16 @@ void testMatrixMultCircuit(const QRP& qrp) {
     for (long i = 0; i < qrp.circuit.numberOfOutputWires; i++) {
         output[i] = allWireValues[i + qrp.outOffset];
     }
-    cout << "Output\n";
 
+    t = clock();
     Proof pi = prove(qrp, crs, allWireValues);
+    t = clock() - t;
+    cout << "Proof done: " << t / CLOCKS_PER_SEC << " seconds\n";
 
+    t = clock();
     assert (verify(qrp, state, crs, pi, input, output) == 1);
+    t = clock() - t;
+    cout << "Verify done: " << t / CLOCKS_PER_SEC << " seconds\n";
 }
 
 void testFile(string testName) {
