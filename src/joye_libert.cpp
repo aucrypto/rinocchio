@@ -2,6 +2,7 @@
 #include <NTL/ZZ_p.h>
 #include <NTL/ZZ_pE.h>
 #include <NTL/ZZ_pX.h>
+#include <NTL/ZZVec.h>
 #include <vector>
 #include <joye_libert.h>
 
@@ -63,9 +64,9 @@ void precompute_pow2(ZZ& pow2k, const int k) {
 void encrypt(ZZ& c, const ZZ& m, const ZZ& n, const ZZ& g, const int k, const ZZ& pow2k) {
 	ZZ x;
     x = RandomBnd(n);
-    x = PowerMod(x, pow2k, n);
-    c = PowerMod(g, m, n);
-    c = (c * x) % n;
+    PowerMod(x, x, pow2k, n);
+    PowerMod(c, g, m, n);
+    MulMod(c, c, x, n);
 }
 
 /*
@@ -82,7 +83,8 @@ void encrypt(ZZ& c, const ZZ& m, const ZZ& n, const ZZ& g, const int k, const ZZ
 void decrypt(ZZ& m, const ZZ& c, const ZZ& p, const ZZ& p_prime, const ZZ& D_, const int k, const ZZ& pow2k1) {
     ZZ C = c % p;
     C = PowerMod(C, p_prime, p);
-    m = ZZ(0);
+    // m = ZZ(0);
+    clear(m);
     
     ZZ B, D, E, temp;
     int i;
@@ -90,14 +92,15 @@ void decrypt(ZZ& m, const ZZ& c, const ZZ& p, const ZZ& p_prime, const ZZ& D_, c
     D = D_;
     E = pow2k1;
     for (i=0;i<k-1;i++) {
-        temp = PowerMod(C, E, p);
-        if (IsOne(temp) != 1) {
+        PowerMod(temp, C, E, p);
+        if (!IsOne(temp)) {
             m = m + B;
-            temp = C * D;
-            C = temp % p;
+            MulMod(C, C, D, p);
         }
-        B = B + B;
-        D = PowerMod(D, 2, p);
+        B = B << 1; //todo ZZ has LeftShift
+        // B = B + B; //todo ZZ has LeftShift
+        PowerMod(D, D, 2, p);
+        // D = PowerMod(D, 2, p);
         E = E >> 1;
     }
 
@@ -106,14 +109,16 @@ void decrypt(ZZ& m, const ZZ& c, const ZZ& p, const ZZ& p_prime, const ZZ& D_, c
     }
 }
 
-void add_encrypted(ZZ& result, const ZZ& c1, const ZZ& c2, const ZZ& n) {
-    result = c1 * c2;
-    result = result % n;
-}
+// void add_encrypted(ZZ& result, const ZZ& c1, const ZZ& c2, const ZZ& n) {
+//     // result = c1 * c2;
+//     // result = result % n;
+//     MulMod(result, c1, c2, n);
+// }
 
-void scalar_mult_encrypted(ZZ& c_result, const ZZ& c, const ZZ& scalar, const ZZ& n) {
-    c_result = PowerMod(c, scalar, n);
-}
+// void scalar_mult_encrypted(ZZ& c_result, const ZZ& c, const ZZ& scalar, const ZZ& n) {
+//     // c_result = PowerMod(c, scalar, n);
+//     PowerMod(c_result, c, scalar, n);
+// }
 
 JLEncodingKey gen_jl_encoding_key(long l, long k) {
     ZZ p_prime, p, n, g, D;
@@ -150,18 +155,14 @@ JLEncoding encode(const ZZ_pE& m, const JLEncodingKey& key) {
 }
 
 ZZ_pE decode(const JLEncoding& c, const JLEncodingKey& key) {
+    const long length = c.coeffs.length();
+    // ZZVec acc = ZZVec(length, key.n.size());//too large element size? Would fit the ciphertext
     ZZ_pX result;
     
-    // std::cout << "k....: " << key.k << "\n";
-    // std::cout << "po2k1: " << key.pow2k1 << "\n";
     ZZ ci;
     for (int i = 0; i < c.coeffs.length(); i++) {
-        // std::cout << "coeff: " << c.coeffs[i] << "\n";
-        // std::cout << "p....: " << key.p << "\n";
-        // std::cout << "p_pri: " << key.p_prime << "\n";
-        // std::cout << "D....: " << key.D << "\n";
         decrypt(ci, c.coeffs[i], key.p, key.p_prime, key.D, key.k, key.pow2k1);
-        // std::cout << "decry: " << ci << "\n";
+        // acc[i] = ci;
         ZZ_p ci_ = conv<ZZ_p>(ci);
         SetCoeff(result, i, ci_);
     }
@@ -205,7 +206,8 @@ JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& 
     return JLEncoding{.coeffs = res}; 
 }
 //todo compare multiplications
-JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key) {
+//todo ZZ has mulAddTo - faster?
+JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const ZZ& n) {
     JLEncoding res;
     long da = a.coeffs.length() - 1;
     long db = b.length() - 1;
@@ -229,8 +231,8 @@ JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const JLEnc
         jmax = min(da, i);
         set(acc);
         for (j = jmin; j <= jmax; j++) {
-            scalar_mult_encrypted(t, ap[j], bp[i-j], key.n);
-            add_encrypted(acc, acc, t, key.n);
+            scalar_mult_encrypted(t, ap[j], bp[i-j], n);
+            add_encrypted(acc, acc, t, n);
         }
         resp[i] = acc;
     }

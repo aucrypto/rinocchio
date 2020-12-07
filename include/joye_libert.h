@@ -14,9 +14,13 @@ void encrypt(ZZ& c, const ZZ& m, const ZZ& n, const ZZ& y, const int k, const ZZ
 
 void decrypt(ZZ& m, const ZZ& c, const ZZ& p, const ZZ& p_prime, const ZZ& D_, const int k, const ZZ& pow2k1);
 
-void add_encrypted(ZZ& result, const ZZ& c1, const ZZ& c2, const ZZ& n);
+inline void add_encrypted(ZZ& result, const ZZ& c1, const ZZ& c2, const ZZ& n) {
+    MulMod(result, c1, c2, n);
+}
 
-void scalar_mult_encrypted(ZZ& result, const ZZ& c, const ZZ& scalar, const ZZ& n);
+inline void scalar_mult_encrypted(ZZ& result, const ZZ& c, const ZZ& scalar, const ZZ& n) {
+    PowerMod(result, c, scalar, n);
+}
 
 struct JLEncoding {// todo use typedef?
     Vec<ZZ> coeffs;
@@ -43,7 +47,7 @@ inline JLEncoding jle_scalar_mult(const JLEncoding& a, const ZZ& scalar, const J
 
 JLEncoding jle_mult(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key);
 
-JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const JLEncodingKey& key);
+JLEncoding PlainMulEncryption(const JLEncoding& a, const Vec<ZZ>& b, const ZZ& n);
 
 ostream& operator<<(ostream& s, const JLEncodingKey& key);
 

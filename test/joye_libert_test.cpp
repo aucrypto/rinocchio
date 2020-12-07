@@ -6,45 +6,14 @@
 #include <assert.h>
 #include <joye_libert.h>
 
+#include <time.h>
+
 
 using namespace std;
 using namespace NTL;
 
-
-Vec<ZZ> PlainMulNew(const Vec<ZZ>& a, const Vec<ZZ>& b) {
-    Vec<ZZ> res;
-    long da = a.length() - 1;
-    long db = b.length() - 1;
-    long d = da+db;
-    res.SetLength(d + 1); //todo lengths - 1
-
-
-
-    const ZZ *ap, *bp;
-
-    ap = a.elts();
-    bp = b.elts();
-
-    ZZ *resp = res.elts();
-
-    long i, j, jmin, jmax;
-    ZZ t, acc;
-
-    for (i = 0; i <= d; i++) {
-        jmin = max(0, i-db);
-        jmax = min(da, i);
-        clear(acc);
-        for (j = jmin; j <= jmax; j++) {
-            mul(t, ap[j], bp[i-j]);
-            add(acc, acc, t);
-        }
-        resp[i] = acc;
-    }
-    return res;
-}
-
-int main() {
-    ZZ modulus = ZZ(1) << 64;
+void test() {
+        ZZ modulus = ZZ(1) << 64;
     ZZ_p::init(modulus);
     
     // P = x^4 + x + 1
@@ -93,11 +62,11 @@ int main() {
 
     keygen(p_prime, p, n, y, D, l, k);
 
-    cout << "p: " << p << "\n";
-    cout << "p_prime:" << p_prime << "\n";
-    cout << "n: " << n << "\n";
-    cout << "y: " << y << "\n";
-    cout << "D: " << D << "\n";
+    // cout << "p: " << p << "\n";
+    // cout << "p_prime:" << p_prime << "\n";
+    // cout << "n: " << n << "\n";
+    // cout << "y: " << y << "\n";
+    // cout << "D: " << D << "\n";
 
     ZZ pow2k, pow2k1;
     precompute_pow2(pow2k, k);
@@ -108,8 +77,8 @@ int main() {
     ZZ m1m2 = m1 + m2;
     ZZ s = ZZ(14);
     ZZ sm1 = s * m1;
-    cout << "m1:          " << m1 << "\n";
-    cout << "m2:          " << m2 << "\n";
+    // cout << "m1:          " << m1 << "\n";
+    // cout << "m2:          " << m2 << "\n";
     ZZ c1, c2, c1c2, sc1;
     encrypt(c1, m1, n, y, k, pow2k);
     encrypt(c2, m2, n, y, k, pow2k);
@@ -211,10 +180,99 @@ int main() {
         decoded = decode(encoded12prod, key);
         assert (decoded == (m1 * m2));
 
-        JLEncoding encoded12prod_ = PlainMulEncryption(encoded1, to_vec_ZZ(rep(m2).rep), key);
+        JLEncoding encoded12prod_ = PlainMulEncryption(encoded1, to_vec_ZZ(rep(m2).rep), key.n);
         ZZ_pE decoded2 = decode(encoded12prod_, key);
         assert (decoded2 == (m1*m2));
     }
 
     cout << "\nPassed all tests!\n";
+}
+
+int main() {
+    test();
+
+    long iterations = 100000;
+    cout << "Testing with " << iterations << " iterations\n";
+
+    clock_t t = clock();
+    ZZ modulus = ZZ(1) << 64;
+
+
+    ZZ p_prime, p, n, y, D;
+    const int k = 64; // message bit length
+    const int l = 512; // modulus bit length
+
+    keygen(p_prime, p, n, y, D, l, k);
+
+    ZZ pow2k, pow2k1;
+    precompute_pow2(pow2k, k);
+    precompute_pow2(pow2k1, k-1);
+
+    Vec<ZZ> randomMods, encryptions;
+    randomMods.SetLength(iterations);
+    encryptions.SetLength(iterations);
+
+    t = clock();
+    for (int i = 0; i < iterations; i++) {
+        randomMods[i] = RandomBits_ZZ(k);
+    }    
+    t = clock() - t;
+    cout << "Draw random numbers mod 2^k: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+
+    t = clock();
+    ZZ m, c;
+    for (int i = 0; i < iterations; i++) {
+        encrypt(c, randomMods[i], n, y, k, pow2k);
+        encryptions[i] = c;
+    }    
+    t = clock() - t;
+    cout << "Encryption: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+
+    {
+        // test iterated addition
+        ZZ m, m_sum, c, c_sum, m_sum_decrypted;
+        m_sum = RandomBits_ZZ(k);
+        t = clock();
+        encrypt(c_sum, m_sum, n, y, k, pow2k);
+        for (int i = 0; i < iterations; i++) {
+            m = randomMods[i];
+            m_sum = m_sum + m;
+            add_encrypted(c_sum, c_sum, encryptions[i], n);
+        }
+        decrypt(m_sum_decrypted, c_sum, p, p_prime, D, k, pow2k1);
+        t = clock() - t;
+        cout << "Addition: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+        assert((m_sum % modulus) == m_sum_decrypted);
+    }
+
+    {
+        // test iterated scaling
+        ZZ scalar, m_scaled, c, c_scaled, m_scaled_decrypted;
+        m_scaled = RandomBits_ZZ(k);
+        encrypt(c_scaled, m_scaled, n, y, k, pow2k);
+        t = clock();
+        for (int i = 0; i < iterations; i++) {
+            scalar = randomMods[i];
+            MulMod(m_scaled, m_scaled, scalar, modulus);
+            scalar_mult_encrypted(c_scaled, c_scaled, scalar, n);
+        }
+        decrypt(m_scaled_decrypted, c_scaled, p, p_prime, D, k, pow2k1);
+        t = clock() - t;
+        cout << "Scalar multiplication: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+        assert(m_scaled == m_scaled_decrypted);
+    }
+
+    {
+        // return 0;
+        // test iterated decryption
+        Vec<ZZ> decryptions;
+        decryptions.SetLength(iterations);
+        t = clock();
+        for (int i = 0; i < iterations; i++) {
+            decrypt(decryptions[i], encryptions[i], p, p_prime, D, k, pow2k1);
+        }
+        t = clock() - t;
+        cout << "Decryption: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+        assert(randomMods == decryptions);
+    }
 }
