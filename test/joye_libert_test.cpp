@@ -13,7 +13,7 @@ using namespace std;
 using namespace NTL;
 
 void test() {
-        ZZ modulus = ZZ(1) << 64;
+    ZZ modulus = ZZ(1) << 64;
     ZZ_p::init(modulus);
     
     // P = x^4 + x + 1
@@ -188,10 +188,7 @@ void test() {
     cout << "\nPassed all tests!\n";
 }
 
-int main() {
-    test();
-
-    long iterations = 100000;
+void bench(long iterations) {
     cout << "Testing with " << iterations << " iterations\n";
 
     clock_t t = clock();
@@ -275,4 +272,10 @@ int main() {
         cout << "Decryption: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
         assert(randomMods == decryptions);
     }
+}
+
+int main() {
+    test();
+
+    bench(10000);
 }

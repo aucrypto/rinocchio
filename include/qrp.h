@@ -19,7 +19,7 @@ struct QRP {
     Vec<ZZ_pEX> Y;
 };
 
-QRP getQRP(const Circuit& circuit);
+QRP getQRP(const Circuit& circuit, long k, long minimumDegree);
 
 ostream& operator<<(ostream& s, const QRP& qrp);
 istream& operator>>(istream& s, QRP& qrp);

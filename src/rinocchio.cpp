@@ -121,7 +121,7 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     };
 }
 
-bool verify(const QRP& qrp, const SecretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output) {
+bool verify(const SecretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output) {
     cout << "Verify start\n";
     clock_t t = clock();
     ZZ_pE rvVmidOfS = decode(pi.rvVmidOfS, secret.secretKey);

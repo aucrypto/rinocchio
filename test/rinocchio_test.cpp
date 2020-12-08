@@ -92,7 +92,7 @@ void basicExample() {
     circuit.gates.push_back(g4);
     circuit.gates.push_back(g5);
 
-    QRP qrp = getQRP(circuit);
+    QRP qrp = getQRP(circuit, 64, 4);
     SecretState state = setup(qrp, 512, 64);
     CRS crs = getCRS(qrp, state);
     Vec<ZZ_p> input;
@@ -107,7 +107,7 @@ void basicExample() {
     Vec<ZZ_p> output;
     output.append(allWireValues[5]);
 
-    assert (verify(qrp, state, crs, pi, input, output) == 1);
+    assert (verify(state, crs, pi, input, output) == 1);
 }
 
 Circuit circuitFromFile(string path) {
@@ -201,7 +201,7 @@ QRP computeOrReadQRP(string qrpPath, string circuitPath) {
     if (!readSuccess) {
         cout << "QRP file does not exist.\n";
         Circuit c = circuitFromFile(circuitPath); //todo handle error
-        qrp = getQRP(c);
+        qrp = getQRP(c, 64, 10);
         writeQRP(qrp, qrpPath);
         cout << "QRP was computed and written to file.\n";
         return qrp;
@@ -213,7 +213,7 @@ QRP computeOrReadQRP(string qrpPath, string circuitPath) {
         || qrp.circuit.numberOfWires != qrp.Y.length()) {
             cout << "Read invalid QRP\n"; //todo maybe ask before overwriting
             Circuit c = circuitFromFile(circuitPath); //todo handle error
-            qrp = getQRP(c);
+            qrp = getQRP(c, 64, 10);
             writeQRP(qrp, qrpPath);
             cout << "QRP was computed and written to file.\n";
             return qrp;
@@ -237,7 +237,6 @@ void testMatrixMultCircuit(const QRP& qrp, const SecretState& state, const CRS& 
     Vec<ZZ_p> allWireValues = eval(qrp.circuit, input);
     t = clock() - t;
     cout << "Circuit evaluated: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
-    // cout << allWireValues << "all wires\n";
 
     Vec<ZZ_p> output;
     output.SetLength(qrp.circuit.numberOfOutputWires);
@@ -251,7 +250,7 @@ void testMatrixMultCircuit(const QRP& qrp, const SecretState& state, const CRS& 
     cout << "Proof done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
     t = clock();
-    assert (verify(qrp, state, crs, pi, input, output) == 1);
+    assert (verify(state, crs, pi, input, output) == 1);
     t = clock() - t;
     cout << "Verify done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 }
