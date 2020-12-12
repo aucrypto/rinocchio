@@ -11,24 +11,21 @@ SecretState setup(const QRP& qrp, long l, long k) {
     SecretState ss;
     clock_t t = clock();
     //Find non-zero s in exceptional set (i.e. in A^*):
-    ZZ_pE s;
-    s = randomNonZeroInExceptionalSet();
+    ss.s = randomNonZeroInExceptionalSet();
     //Find random r_v, r_w in R^*, i.e. d random coefficients where at least one is odd
-    ZZ_pE r_v, r_w, r_y;
-    r_v = randomInvertible();
-    r_w = randomInvertible();
-    r_y = r_v * r_w;
+    ss.r_v = randomInvertible();
+    ss.r_w = randomInvertible();
+    ss.r_y = ss.r_v * ss.r_w;
     
-    ZZ_pE alpha, alpha_v, alpha_w, alpha_y;
-    alpha = randomInvertible();
-    alpha_v = randomInvertible();
-    alpha_w = randomInvertible();
-    alpha_y = randomInvertible();
+    // ZZ_pE alpha, alpha_v, alpha_w, alpha_y;
+    ss.alpha = randomInvertible();
+    ss.alpha_v = randomInvertible();
+    ss.alpha_w = randomInvertible();
+    ss.alpha_y = randomInvertible();
 
-    ZZ_pE beta;
     do {
-        beta = random_ZZ_pE();
-    } while (IsZero(beta));
+        ss.beta = random_ZZ_pE();
+    } while (IsZero(ss.beta));
     t = clock() - t;
     std::cout << "Secret elements found: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
     t = clock();
@@ -36,30 +33,22 @@ SecretState setup(const QRP& qrp, long l, long k) {
     ss.inVofS.SetLength(qrp.circuit.numberOfInputWires);
     ss.inWofS.SetLength(qrp.circuit.numberOfInputWires);
     for (int k = 0; k < qrp.circuit.numberOfInputWires; k++) {
-        ss.inVofS[k] = eval(qrp.V[k], s) * r_v;
-        ss.inWofS[k] = eval(qrp.W[k], s) * r_w;
+        ss.inVofS[k] = eval(qrp.V[k], ss.s) * ss.r_v;
+        ss.inWofS[k] = eval(qrp.W[k], ss.s) * ss.r_w;
     }
     ss.outVofS.SetLength(qrp.circuit.numberOfOutputWires);
     ss.outWofS.SetLength(qrp.circuit.numberOfOutputWires);
     ss.outYofS.SetLength(qrp.circuit.numberOfOutputWires);
     for (int k = 0; k < qrp.circuit.numberOfOutputWires; k++) {
-        ss.outVofS[k] = eval(qrp.V[k + qrp.outOffset], s) * r_v;
-        ss.outWofS[k] = eval(qrp.W[k + qrp.outOffset], s) * r_w;
-        ss.outYofS[k] = eval(qrp.Y[k + qrp.outOffset], s) * r_y;
+        ss.outVofS[k] = eval(qrp.V[k + qrp.outOffset], ss.s) * ss.r_v;
+        ss.outWofS[k] = eval(qrp.W[k + qrp.outOffset], ss.s) * ss.r_w;
+        ss.outYofS[k] = eval(qrp.Y[k + qrp.outOffset], ss.s) * ss.r_y;
     }
     t = clock() - t;
     std::cout << "Wire polynomials evaluated in s: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
 
-    ss.s = s;
-    ss.r_v = r_v;
-    ss.r_w = r_w;
-    ss.r_y = r_y;
-    ss.alpha = alpha;
-    ss.alpha_v = alpha_v;
-    ss.alpha_w = alpha_w;
-    ss.alpha_y = alpha_y;
-    ss.beta = beta;
-    ss.tOfS = eval(qrp.t, s) * r_y;
+
+    ss.tOfS = eval(qrp.t, ss.s) * ss.r_y;
     ss.secretKey = gen_jl_encoding_key(l, k);
 
     return ss;
@@ -67,38 +56,37 @@ SecretState setup(const QRP& qrp, long l, long k) {
 
 
 CRS getCRS(const QRP& prog, const SecretState& ss) {
+    CRS crs;
+    crs.publicKey = ss.secretKey;//todo separate pk
     clock_t t = clock();
     //{E(S^i)}_i=0^d
     //{E(alpha * S^i)}_i=0^d
-    Vec<JLEncoding> powersOfS;
-    Vec<JLEncoding> powersOfSMultAlpha;
     {
         ZZ_pE acc;
         set(acc);
         for (int i = 0; i <= prog.circuit.numberOfMultiplicationGates; i++) {
             ZZ_pE ithPower = ZZ_pE(acc);
-            powersOfS.append(encode(ithPower, ss.secretKey));
+            crs.powersOfS.append(encode(ithPower, ss.secretKey));
 
             ZZ_pE ithPowerMultAlpha = ss.alpha * ithPower;
-            powersOfSMultAlpha.append(encode(ithPowerMultAlpha, ss.secretKey));
+            crs.powersOfSMultAlpha.append(encode(ithPowerMultAlpha, ss.secretKey));
             
             acc = acc * ss.s;
         }
     }
+
     t = clock() - t;
     std::cout << "Powers of s encrypted: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
     t = clock();
 
     long sizeOfImid = prog.circuit.numberOfMidWires;
-    Vec<JLEncoding> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
-    rvVofS.SetLength(sizeOfImid);
-    rwWofS.SetLength(sizeOfImid);
-    ryYofS.SetLength(sizeOfImid);
-    alpharvVofS.SetLength(sizeOfImid);
-    alpharwWofS.SetLength(sizeOfImid);
-    alpharyYofS.SetLength(sizeOfImid);
-    betaSums.SetLength(sizeOfImid);
-
+    crs.rvVofS.SetLength(sizeOfImid);
+    crs.rwWofS.SetLength(sizeOfImid);
+    crs.ryYofS.SetLength(sizeOfImid);
+    crs.alpharvVofS.SetLength(sizeOfImid);
+    crs.alpharwWofS.SetLength(sizeOfImid);
+    crs.alpharyYofS.SetLength(sizeOfImid);
+    crs.betaSums.SetLength(sizeOfImid);
     for (int k = 0; k < sizeOfImid; k++) {
         //{E(r_v * v_k(S))}_k\in I_mid'
         //{E(r_w * w_k(S))}_k\in I_mid
@@ -110,9 +98,9 @@ CRS getCRS(const QRP& prog, const SecretState& ss) {
         mul(rvVkofS, rvVkofS, ss.r_v);
         mul(rwWkofS, rwWkofS, ss.r_w);
         mul(ryYkofS, ryYkofS, ss.r_y);
-        rvVofS[k] = encode(rvVkofS, ss.secretKey);
-        rwWofS[k] = encode(rwWkofS, ss.secretKey);
-        ryYofS[k] = encode(ryYkofS, ss.secretKey);
+        crs.rvVofS[k] = encode(rvVkofS, ss.secretKey);
+        crs.rwWofS[k] = encode(rwWkofS, ss.secretKey);
+        crs.ryYofS[k] = encode(ryYkofS, ss.secretKey);
             
         //{E(alpha_v * r_v * v_k(S))}_k\in I_mid
         //{E(alpha_w * r_w * w_k(S))}_k\in I_mid
@@ -121,30 +109,18 @@ CRS getCRS(const QRP& prog, const SecretState& ss) {
         mul(alpharvVkofS, rvVkofS, ss.alpha_v);
         mul(alpharwWkofS, rwWkofS, ss.alpha_w);
         mul(alpharyYkofS, ryYkofS, ss.alpha_y);
-        alpharvVofS[k] = encode(alpharvVkofS, ss.secretKey);
-        alpharwWofS[k] = encode(alpharwWkofS, ss.secretKey);
-        alpharyYofS[k] = encode(alpharyYkofS, ss.secretKey);
+        crs.alpharvVofS[k] = encode(alpharvVkofS, ss.secretKey);
+        crs.alpharwWofS[k] = encode(alpharwWkofS, ss.secretKey);
+        crs.alpharyYofS[k] = encode(alpharyYkofS, ss.secretKey);
 
         //{E(beta ((r_v * v_k(S)) + (r_w * w_k(S)) + (r_y * y_k(S)))}_k\in I_mid
         ZZ_pE kthBetaSum;
         kthBetaSum = ss.beta * (rvVkofS + rwWkofS + ryYkofS);
-        betaSums[k] = encode(kthBetaSum, ss.secretKey);
+        crs.betaSums[k] = encode(kthBetaSum, ss.secretKey);
     }
     t = clock() - t;
     std::cout << "Masked wire polynomials in s encrypted: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
-    //pk
 
-    CRS crs;//Todo is it significantly faster not to copy here?
-    crs.rvVofS = rvVofS;
-    crs.rwWofS = rwWofS;
-    crs.ryYofS = ryYofS;
-    crs.alpharvVofS = alpharvVofS;
-    crs.alpharwWofS = alpharwWofS;
-    crs.alpharyYofS = alpharyYofS;
-    crs.betaSums = betaSums;
-    crs.powersOfS = powersOfS;
-    crs.powersOfSMultAlpha = powersOfSMultAlpha;
-    crs.publicKey = ss.secretKey;//todo separate
     return crs;
 }
 

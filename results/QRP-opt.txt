@@ -1,0 +1,476 @@
+Testing: n=2_m=2_k=2
+4extd
+modulus: [1 1 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 2.3e-05 seconds
+Target polynomial computed: 0.000183 seconds
+V, W and Y computed: 0.002496 seconds
+QRP was computed and written to file.
+Secret done: 0.300816 seconds
+CRS done: 0.01382 seconds
+input drawn: 4e-06 seconds
+Circuit evaluated: 9e-06 seconds
+Start prove...
+V, W and Y computed: 0.000196 seconds
+H computed: 0.000272 seconds
+mid polynomials computed: 0.004237 seconds
+H(s) computed: 0.008664 seconds
+Proof done: 0.013425 seconds
+Verify start
+done decoding, took 0.017897
+done checking decodings, took 2.5e-05
+done computing io, took 1.6e-05
+done checking h, took 1.1e-05
+Verified!
+Verify done: 0.017997 seconds
+Tested: n=2_m=2_k=2
+Spent 0.350982 seconds
+Testing: n=3_m=3_k=3
+6extd
+modulus: [1 1 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 5.3e-05 seconds
+Target polynomial computed: 0.002123 seconds
+V, W and Y computed: 0.016985 seconds
+QRP was computed and written to file.
+Secret done: 0.528006 seconds
+CRS done: 0.053542 seconds
+input drawn: 7e-06 seconds
+Circuit evaluated: 5.3e-05 seconds
+Start prove...
+V, W and Y computed: 0.002275 seconds
+H computed: 0.003975 seconds
+mid polynomials computed: 0.023385 seconds
+H(s) computed: 0.049999 seconds
+Proof done: 0.079724 seconds
+Verify start
+done decoding, took 0.017452
+done checking decodings, took 1.3e-05
+done computing io, took 6e-06
+done checking h, took 6e-06
+Verified!
+Verify done: 0.017499 seconds
+Tested: n=3_m=3_k=3
+Spent 0.714562 seconds
+Testing: n=4_m=4_k=4
+7extd
+modulus: [1 1 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 9.6e-05 seconds
+Target polynomial computed: 0.008099 seconds
+V, W and Y computed: 0.072245 seconds
+QRP was computed and written to file.
+Secret done: 0.179003 seconds
+CRS done: 0.138946 seconds
+input drawn: 1.2e-05 seconds
+Circuit evaluated: 5.9e-05 seconds
+Start prove...
+V, W and Y computed: 0.011053 seconds
+H computed: 0.0042 seconds
+mid polynomials computed: 0.061467 seconds
+H(s) computed: 0.154591 seconds
+Proof done: 0.231438 seconds
+Verify start
+done decoding, took 0.020495
+done checking decodings, took 1.3e-05
+done computing io, took 7e-06
+done checking h, took 6e-06
+Verified!
+Verify done: 0.020544 seconds
+Tested: n=4_m=4_k=4
+Spent 0.728477 seconds
+Testing: n=5_m=5_k=5
+8extd
+modulus: [1 0 1 1 1 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.000303 seconds
+Target polynomial computed: 0.036122 seconds
+V, W and Y computed: 0.286214 seconds
+QRP was computed and written to file.
+Secret done: 0.345272 seconds
+CRS done: 0.419025 seconds
+input drawn: 1.7e-05 seconds
+Circuit evaluated: 0.000104 seconds
+Start prove...
+V, W and Y computed: 0.044084 seconds
+H computed: 0.008227 seconds
+mid polynomials computed: 0.14712 seconds
+H(s) computed: 0.365441 seconds
+Proof done: 0.565058 seconds
+Verify start
+done decoding, took 0.021976
+done checking decodings, took 1.5e-05
+done computing io, took 8e-06
+done checking h, took 6e-06
+Verified!
+Verify done: 0.022023 seconds
+Tested: n=5_m=5_k=5
+Spent 1.98212 seconds
+Testing: n=6_m=6_k=6
+8extd
+modulus: [1 0 1 1 1 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.0004 seconds
+Target polynomial computed: 0.107458 seconds
+V, W and Y computed: 0.787494 seconds
+QRP was computed and written to file.
+Secret done: 0.478767 seconds
+CRS done: 0.724013 seconds
+input drawn: 1.8e-05 seconds
+Circuit evaluated: 0.000177 seconds
+Start prove...
+V, W and Y computed: 0.114312 seconds
+H computed: 0.011705 seconds
+mid polynomials computed: 0.236827 seconds
+H(s) computed: 0.619183 seconds
+Proof done: 0.982336 seconds
+Verify start
+done decoding, took 0.021704
+done checking decodings, took 1.5e-05
+done computing io, took 1.1e-05
+done checking h, took 6e-06
+Verified!
+Verify done: 0.021751 seconds
+Tested: n=6_m=6_k=6
+Spent 3.94211 seconds
+Testing: n=7_m=7_k=7
+9extd
+modulus: [1 0 0 0 1 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.000611 seconds
+Target polynomial computed: 0.269644 seconds
+V, W and Y computed: 2.01125 seconds
+QRP was computed and written to file.
+Secret done: 0.936139 seconds
+CRS done: 1.49156 seconds
+input drawn: 2.6e-05 seconds
+Circuit evaluated: 0.000242 seconds
+Start prove...
+V, W and Y computed: 0.305555 seconds
+H computed: 0.021373 seconds
+mid polynomials computed: 0.412537 seconds
+H(s) computed: 1.17914 seconds
+Proof done: 1.91904 seconds
+Verify start
+done decoding, took 0.025584
+done checking decodings, took 3.6e-05
+done computing io, took 1.3e-05
+done checking h, took 7e-06
+Verified!
+Verify done: 0.025663 seconds
+Tested: n=7_m=7_k=7
+Spent 8.88209 seconds
+Testing: n=8_m=8_k=8
+10extd
+modulus: [1 0 0 1 0 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.001002 seconds
+Target polynomial computed: 0.633129 seconds
+V, W and Y computed: 4.77438 seconds
+QRP was computed and written to file.
+Secret done: 1.46134 seconds
+CRS done: 4.74657 seconds
+input drawn: 3.2e-05 seconds
+Circuit evaluated: 0.000336 seconds
+Start prove...
+V, W and Y computed: 0.677219 seconds
+H computed: 0.034312 seconds
+mid polynomials computed: 0.712988 seconds
+H(s) computed: 2.29741 seconds
+Proof done: 3.72266 seconds
+Verify start
+done decoding, took 0.02999
+done checking decodings, took 2.6e-05
+done computing io, took 0.000188
+done checking h, took 1.3e-05
+Verified!
+Verify done: 0.03024 seconds
+Tested: n=8_m=8_k=8
+Spent 20.6597 seconds
+Testing: n=9_m=9_k=9
+10extd
+modulus: [1 0 0 1 0 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.001472 seconds
+Target polynomial computed: 1.39467 seconds
+V, W and Y computed: 9.81312 seconds
+QRP was computed and written to file.
+Secret done: 1.39505 seconds
+CRS done: 6.79379 seconds
+input drawn: 4.2e-05 seconds
+Circuit evaluated: 0.000577 seconds
+Start prove...
+V, W and Y computed: 1.33517 seconds
+H computed: 0.051525 seconds
+mid polynomials computed: 0.969826 seconds
+H(s) computed: 3.06164 seconds
+Proof done: 5.41906 seconds
+Verify start
+done decoding, took 0.032824
+done checking decodings, took 3.4e-05
+done computing io, took 3.6e-05
+done checking h, took 1.3e-05
+Verified!
+Verify done: 0.032958 seconds
+Tested: n=9_m=9_k=9
+Spent 35.2226 seconds
+Testing: n=10_m=10_k=10
+11extd
+modulus: [1 0 1 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.002184 seconds
+Target polynomial computed: 2.8431 seconds
+V, W and Y computed: 20.3626 seconds
+QRP was computed and written to file.
+Secret done: 1.81985 seconds
+CRS done: 12.0847 seconds
+input drawn: 5.8e-05 seconds
+Circuit evaluated: 0.000787 seconds
+Start prove...
+V, W and Y computed: 3.00231 seconds
+H computed: 0.100143 seconds
+mid polynomials computed: 1.5653 seconds
+H(s) computed: 5.27038 seconds
+Proof done: 9.93916 seconds
+Verify start
+done decoding, took 0.030936
+done checking decodings, took 2e-05
+done computing io, took 2.2e-05
+done checking h, took 8e-06
+Verified!
+Verify done: 0.031003 seconds
+Tested: n=10_m=10_k=10
+Spent 68.9098 seconds
+d40053:rinocchio au521209$ make run
+g++ -O2 -std=c++11 -I./include test/rinocchio_test.cpp src/*.cpp -o out/rinocchio -pthread -lntl -lgmp -lm
+./out/rinocchio
+Testing: n=3_m=3_k=3
+modulus: [1 1 0 0 0 0 1]
+QRP was read from file.
+Secret done: 0.000156 seconds
+CRS done: 0.012295 seconds
+input drawn: 6.6e-05 seconds
+Circuit evaluated: 5.6e-05 seconds
+Start prove...
+V, W and Y computed: 0.002448 seconds
+H computed: 0.004134 seconds
+mid polynomials computed: 0.024542 seconds
+H(s) computed: 0.049707 seconds
+Proof done: 0.080913 seconds
+Verify start
+done decoding, took 0.017729
+done checking decodings, took 1.8e-05
+done computing io, took 5e-06
+done checking h, took 5e-06
+Verified!
+Verify done: 0.017787 seconds
+Tested: n=3_m=3_k=3
+Spent 0.128874 seconds
+
+
+d40053:rinocchio au521209$ make run
+g++ -O2 -std=c++11 -I./include test/rinocchio_test.cpp src/*.cpp -o out/rinocchio -pthread -lntl -lgmp -lm
+./out/rinocchio
+Testing: n=10_m=10_k=10
+modulus: [1 0 1 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Secret done: 0.000261 seconds
+CRS done: 0.61599 seconds
+input drawn: 0.000114 seconds
+Circuit evaluated: 0.000739 seconds
+Start prove...
+V, W and Y computed: 2.56159 seconds
+H computed: 0.088261 seconds
+mid polynomials computed: 1.44523 seconds
+H(s) computed: 4.99813 seconds
+Proof done: 9.09422 seconds
+Verify start
+done decoding, took 0.03094
+done checking decodings, took 2.4e-05
+done computing io, took 2.3e-05
+done checking h, took 7e-06
+Verified!
+Verify done: 0.031021 seconds
+Tested: n=10_m=10_k=10
+Spent 27.3138 seconds
+
+
+d40053:rinocchio au521209$ make run
+g++ -O2 -std=c++11 -I./include test/rinocchio_test.cpp src/*.cpp -o out/rinocchio -pthread -lntl -lgmp -lm
+./out/rinocchio
+Testing: n=10_m=10_k=10
+modulus: [1 0 1 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.00231 seconds
+Target polynomial computed: 2.67962 seconds
+V, W and Y computed: 18.8024 seconds
+QRP was computed and written to file.
+Secret done: 1.55313 seconds
+CRS done: 12.3811 seconds
+input drawn: 5.3e-05 seconds
+Circuit evaluated: 0.000705 seconds
+Start prove...
+V, W and Y computed: 2.69057 seconds
+H computed: 0.084242 seconds
+mid polynomials computed: 1.52678 seconds
+H(s) computed: 5.45894 seconds
+Proof done: 9.76167 seconds
+Verify start
+done decoding, took 0.033285
+done checking decodings, took 2.7e-05
+done computing io, took 2.3e-05
+done checking h, took 8e-06
+Verified!
+Verify done: 0.033372 seconds
+Tested: n=10_m=10_k=10
+Spent 66.3227 seconds
+
+
+d40053:rinocchio au521209$ make run
+g++ -O2 -std=c++11 -I./include test/rinocchio_test.cpp src/*.cpp -o out/rinocchio -pthread -lntl -lgmp -lm
+./out/rinocchio
+Testing: n=14_m=14_k=14
+modulus: [1 1 0 0 1 0 1 0 0 0 0 0 1]
+QRP was read from file.
+Secret done: 0.000696 seconds
+CRS done: 1.85316 seconds
+input drawn: 0.000177 seconds
+Circuit evaluated: 0.002281 seconds
+Start prove...
+V, W and Y computed: 34.9843 seconds
+H computed: 0.354483 seconds
+mid polynomials computed: 4.46187 seconds
+H(s) computed: 16.5345 seconds
+Proof done: 56.3388 seconds
+Verify start
+done decoding, took 0.039741
+done checking decodings, took 3.9e-05
+done computing io, took 0.00011
+done checking h, took 1.4e-05
+Verified!
+Verify done: 0.039953 seconds
+Tested: n=14_m=14_k=14
+Spent 211.427 seconds
+Testing: n=15_m=15_k=15
+modulus: [1 1 0 0 1 0 1 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.007728 seconds
+Target polynomial computed: 38.4029 seconds
+V, W and Y computed: 251.879 seconds
+QRP was computed and written to file.
+Secret done: 15.9896 seconds
+CRS done: 176.968 seconds
+input drawn: 0.000111 seconds
+Circuit evaluated: 0.003304 seconds
+Start prove...
+V, W and Y computed: 43.7656 seconds
+H computed: 0.517663 seconds
+mid polynomials computed: 5.32846 seconds
+H(s) computed: 19.3815 seconds
+Proof done: 68.9973 seconds
+Verify start
+done decoding, took 0.038523
+done checking decodings, took 5.7e-05
+done computing io, took 0.002668
+done checking h, took 5.4e-05
+Verified!
+Verify done: 0.041361 seconds
+Tested: n=15_m=15_k=15
+Spent 894.173 seconds
+Testing: n=16_m=16_k=16
+modulus: [1 1 0 1 1 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.009945 seconds
+Target polynomial computed: 56.6379 seconds
+V, W and Y computed: 397.762 seconds
+QRP was computed and written to file.
+Secret done: 21.5049 seconds
+CRS done: 250.046 seconds
+input drawn: 0.000391 seconds
+Circuit evaluated: 0.005966 seconds
+Start prove...
+V, W and Y computed: 73.6704 seconds
+H computed: 0.706052 seconds
+mid polynomials computed: 7.49943 seconds
+H(s) computed: 27.324 seconds
+Proof done: 109.208 seconds
+Verify start
+done decoding, took 0.052703
+done checking decodings, took 0.000258
+done computing io, took 0.001738
+done checking h, took 2.9e-05
+Verified!
+Verify done: 0.054802 seconds
+Tested: n=16_m=16_k=16
+Spent 1412.99 seconds
+Testing: n=17_m=17_k=17
+modulus: [1 1 0 1 1 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.011449 seconds
+Target polynomial computed: 80.7653 seconds
+V, W and Y computed: 576.174 seconds
+QRP was computed and written to file.
+Secret done: 25.4981 seconds
+CRS done: 330.233 seconds
+input drawn: 0.000303 seconds
+Circuit evaluated: 0.004101 seconds
+Start prove...
+V, W and Y computed: 131.052 seconds
+H computed: 0.835923 seconds
+mid polynomials computed: 8.9623 seconds
+H(s) computed: 32.8623 seconds
+Proof done: 173.721 seconds
+Verify start
+done decoding, took 0.037393
+done checking decodings, took 2.6e-05
+done computing io, took 0.000634
+done checking h, took 1.6e-05
+Verified!
+Verify done: 0.038113 seconds
+Tested: n=17_m=17_k=17
+Spent 2096.17 seconds
+Testing: n=18_m=18_k=18
+modulus: [1 1 0 1 1 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.012269 seconds
+Target polynomial computed: 115.196 seconds
+V, W and Y computed: 829.821 seconds
+QRP was computed and written to file.
+Secret done: 41.1576 seconds
+CRS done: 533.191 seconds
+input drawn: 0.00049 seconds
+Circuit evaluated: 0.006076 seconds
+Start prove...
+V, W and Y computed: 195.042 seconds
+H computed: 1.09974 seconds
+mid polynomials computed: 10.6818 seconds
+H(s) computed: 38.9816 seconds
+Proof done: 245.814 seconds
+Verify start
+done decoding, took 0.038954
+done checking decodings, took 5.1e-05
+done computing io, took 9.9e-05
+done checking h, took 1e-05
+Verified!
+Verify done: 0.039226 seconds
+Tested: n=18_m=18_k=18
+Spent 3086.93 seconds
+Testing: n=19_m=19_k=19
+modulus: [1 1 0 1 1 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Computing subset of exceptional set...
+Subset of exceptional set computed: 0.016699 seconds

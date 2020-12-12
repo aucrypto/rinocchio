@@ -18,8 +18,8 @@
 using namespace std;
 using namespace NTL;
 
-Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
-    Proof proof;
+ZZ_pEX proverComputeH(const QRP& prog, const Vec<ZZ_p>& allWireValues) {
+    ZZ_pEX H;
     clock_t t;
     // Compute p = V*W-Y
     // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
@@ -37,17 +37,22 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     }
     t = clock() - t;
     cout << "V, W and Y computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
-    // cout << V*W << "V*W" << endl;
 
+    
     t = clock();
     ZZ_pEX P = V*W-Y;
     // cout << P << "P" << endl;
 
     // Compute h = p / t
-    ZZ_pEX H = P / prog.t;
+    H = P / prog.t;
     t = clock() - t;
     cout << "H computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+    return H;
+}
 
+Proof prove(const ZZ_pEX& H, const CRS& crs, const Vec<ZZ_p>& allWireValues, long midOffset, long outOffset) {
+    Proof proof;
+    clock_t t;
 
     // E(r_v * Vmid(S))
     // E(r_v * Vmid(S) * alpha_v)
@@ -57,28 +62,28 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     // E(r_y * Ymid(S) * alpha_y)
     // E(beta( (r_v * Vmid(S)) + (r_w * Wmid(S)) +(r_y * Ymid(S)) ))
     t = clock();
-    for (int k = prog.midOffset; k < prog.outOffset; k++) {
+    for (int k = midOffset; k < outOffset; k++) {//todo entire loop could use length of rvVofS instead of referencing qrp.
         //Scalar multiplications
         JLEncoding tmp;
-        tmp = jle_scalar_mult(crs.rvVofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        tmp = jle_scalar_mult(crs.rvVofS[k - midOffset], rep(allWireValues[k]), crs.publicKey);
         jle_add_assign(proof.rvVmidOfS, tmp, crs.publicKey);
-        tmp = jle_scalar_mult(crs.rwWofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        tmp = jle_scalar_mult(crs.rwWofS[k - midOffset], rep(allWireValues[k]), crs.publicKey);
         jle_add_assign(proof.rwWmidOfS, tmp, crs.publicKey);
-        tmp = jle_scalar_mult(crs.ryYofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        tmp = jle_scalar_mult(crs.ryYofS[k - midOffset], rep(allWireValues[k]), crs.publicKey);
         jle_add_assign(proof.ryYmidOfS, tmp, crs.publicKey);
         // rvVmidOfS += rep(allWireValues[k]) * crs.rvVofS[k - prog.midOffset];
         // rwWmidOfS += rep(allWireValues[k]) * crs.rwWofS[k - prog.midOffset];
         // ryYmidOfS += rep(allWireValues[k]) * crs.ryYofS[k - prog.midOffset];
-        tmp = jle_scalar_mult(crs.alpharvVofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        tmp = jle_scalar_mult(crs.alpharvVofS[k - midOffset], rep(allWireValues[k]), crs.publicKey);
         jle_add_assign(proof.alphaVrvVmidOfS, tmp, crs.publicKey);
-        tmp = jle_scalar_mult(crs.alpharwWofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        tmp = jle_scalar_mult(crs.alpharwWofS[k - midOffset], rep(allWireValues[k]), crs.publicKey);
         jle_add_assign(proof.alphaWrwWmidOfS, tmp, crs.publicKey);
-        tmp = jle_scalar_mult(crs.alpharyYofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        tmp = jle_scalar_mult(crs.alpharyYofS[k - midOffset], rep(allWireValues[k]), crs.publicKey);
         jle_add_assign(proof.alphaYryYmidOfS, tmp, crs.publicKey);
         // alphaVrvVmidOfS += rep(allWireValues[k]) * crs.alpharvVofS[k - prog.midOffset];
         // alphaWrwWmidOfS += rep(allWireValues[k]) * crs.alpharwWofS[k - prog.midOffset];
         // alphaYryYmidOfS += rep(allWireValues[k]) * crs.alpharyYofS[k - prog.midOffset];
-        tmp = jle_scalar_mult(crs.betaSums[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
+        tmp = jle_scalar_mult(crs.betaSums[k - midOffset], rep(allWireValues[k]), crs.publicKey);
         jle_add_assign(proof.betaSum, tmp, crs.publicKey);
         // betaSum += rep(allWireValues[k]) * crs.betaSums[k - prog.midOffset];
 
@@ -106,6 +111,16 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     cout << "H(s) computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";//slow
 
     return proof;
+}
+
+Proof prove(const QRP& qrp, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
+    // Proof proof;
+    clock_t t;
+    ZZ_pEX H = proverComputeH(qrp, allWireValues);
+    t = clock() - t;
+    cout << "H computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+
+    return prove(H, crs, allWireValues, qrp.midOffset, qrp.outOffset);
 }
 
 bool verify(const SecretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output) {

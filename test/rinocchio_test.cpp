@@ -211,6 +211,176 @@ QRP computeOrReadQRP(string qrpPath, string circuitPath) {
     return qrp;
 }
 
+
+void testFile(string testName, long k) {
+    string outDir = "./out/setups/" + testName + "/";
+    string path = outDir + testName;
+    string circuitPath = path + "_circuit.txt";
+    string qrpPath = path + "_qrp.txt";
+    // string ioqrpPath = path  + "_io_qrp.txt";
+    const Circuit c = circuitFromFile(circuitPath);
+
+    long extensionDegree = 2;
+    if (c.numberOfMultiplicationGates > 4) extensionDegree = 3;
+    if (c.numberOfMultiplicationGates > 8) extensionDegree = 4;
+    if (c.numberOfMultiplicationGates > 16) extensionDegree = 5;
+    if (c.numberOfMultiplicationGates > 32) extensionDegree = 6;
+    if (c.numberOfMultiplicationGates > 64) extensionDegree = 7;
+    if (c.numberOfMultiplicationGates > 128) extensionDegree = 8;
+    if (c.numberOfMultiplicationGates > 256) extensionDegree = 9;
+    if (c.numberOfMultiplicationGates > 512) extensionDegree = 10;
+    if (c.numberOfMultiplicationGates > 1024) extensionDegree = 11;
+    if (c.numberOfMultiplicationGates > 2048) extensionDegree = 12;
+    if (c.numberOfMultiplicationGates > 4096) extensionDegree = 13;
+    if (c.numberOfMultiplicationGates > 8192) extensionDegree = 14;
+    if (c.numberOfMultiplicationGates > 16384) extensionDegree = 15;
+    if (c.numberOfMultiplicationGates > 32768) extensionDegree = 16;
+    init(k, extensionDegree);
+
+
+    //Generate k'=ceil(k/d) independent setups for fixed QRP, i.e. k'*d >= k, for soundness error 2^-k
+    long iterations40 = 40 / extensionDegree + (40 % extensionDegree != 0);
+    long iterations60 = 60 / extensionDegree + (60 % extensionDegree != 0);
+    long iterations80 = 80 / extensionDegree + (80 % extensionDegree != 0);
+    cout << "iterations for soundness error 2^-40: " << iterations40 << endl;
+    cout << "iterations for soundness error 2^-60: " << iterations60 << endl;
+    cout << "iterations for soundness error 2^-80: " << iterations80 << endl;
+    SecretState secrets[iterations80];
+    CRS CRSs[iterations80];
+    Proof proofs[iterations80];
+    clock_t proveTime = 0;
+    Vec<ZZ_p> allWireValues;
+    long midOffset, outOffset;
+    ZZ_pEX H;
+    Vec<ZZ_p> input;
+    Vec<ZZ_p> output;
+    {
+
+        const QRP qrp = computeOrReadQRP(qrpPath, circuitPath);
+        midOffset = qrp.midOffset;
+        outOffset = qrp.outOffset;
+        {
+
+            bool anyComputed = false;
+            bool allComputed = true;
+            clock_t soundness40SecretTime = 0;
+            clock_t soundness60SecretTime = 0;
+            clock_t soundness80SecretTime = 0;
+            clock_t soundness40CRSTime = 0;
+            clock_t soundness60CRSTime = 0;
+            clock_t soundness80CRSTime = 0;
+            for (int i = 0; i < iterations80; i++) {
+                string secretPath = path + "_iter" + to_string(i+1) + "_secret.txt";
+                string crsPath = path + "_iter" + to_string(i+1) + "_crs.txt";
+                clock_t t = clock();
+                bool success = false;
+                // SecretState state;
+                SecretState state = readSecretState(secretPath, success);
+                if (!success) {
+                    anyComputed = true;
+                    t = clock();
+                    state = setup(qrp, 512, 64);
+                    t = clock() - t;
+                    soundness80SecretTime += t;
+                    if (i < iterations60) {
+                        soundness60SecretTime += t;
+                    }
+                    if (i < iterations40) {
+                        soundness40SecretTime += t;
+                    }
+                    writeSecretState(state, secretPath);
+                } else {
+                    allComputed = false;
+                }
+                secrets[i] = state;
+                
+                // CRS crs;
+                CRS crs = readCRS(crsPath, success);
+                if (!success) {
+                    anyComputed = true;
+                    t = clock();
+                    crs = getCRS(qrp, state);
+                    t = clock() - t;
+                    soundness80CRSTime += t;
+                    if (((i + 1) * extensionDegree) <= 60) {
+                        soundness60CRSTime += t;
+                    }
+                    if (((i + 1) * extensionDegree) <= 40) {
+                        soundness40CRSTime += t;
+                    }
+                    writeCRS(crs, crsPath);
+                } else {
+                    allComputed = false;
+                }
+                CRSs[i] = crs;
+            }
+            if(allComputed) {
+                cout << "Soundness error 2^-40:\n";
+                cout << "   Secret " << ((double) soundness40SecretTime) / CLOCKS_PER_SEC  << " seconds. \n";
+                cout << "   CRS    " << ((double) soundness40CRSTime) / CLOCKS_PER_SEC  << " seconds. \n";
+                cout << "Soundness error 2^-60:\n";
+                cout << "   Secret " << ((double) soundness60SecretTime) / CLOCKS_PER_SEC  << " seconds. \n";
+                cout << "   CRS    " << ((double) soundness60CRSTime) / CLOCKS_PER_SEC  << " seconds. \n";
+                cout << "Soundness error 2^-80:\n";
+                cout << "   Secret " << ((double) soundness80SecretTime) / CLOCKS_PER_SEC  << " seconds. \n";
+                cout << "   CRS    " << ((double) soundness80CRSTime) / CLOCKS_PER_SEC  << " seconds. \n";
+            }
+        }
+
+        input.SetLength(qrp.circuit.numberOfInputWires);
+        input[0] = ZZ_p(1);
+        for (long i = 1; i < qrp.circuit.numberOfInputWires; i++) {
+            input[i] = to_ZZ_p(RandomBits_ZZ(64));
+        }
+
+        clock_t t = clock();
+        allWireValues = eval(qrp.circuit, input);
+        t = clock() - t;
+        cout << "Circuit evaluated: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+
+        
+        output.SetLength(qrp.circuit.numberOfOutputWires);
+        for (long i = 0; i < qrp.circuit.numberOfOutputWires; i++) {
+            output[i] = allWireValues[i + qrp.outOffset];
+        }
+
+        t = clock();
+        H = proverComputeH(qrp, allWireValues);
+        proveTime += clock() - t;
+    }
+    for (int proofIndex = 0; proofIndex < iterations80; proofIndex++) {
+        clock_t t = clock();
+        proofs[proofIndex] = prove(H, CRSs[proofIndex], allWireValues, midOffset, outOffset);
+        proveTime += clock() - t;
+        if (proofIndex + 1 == iterations40) cout << "Proof for soundness 2^-40 done: " << ((double) proveTime) / CLOCKS_PER_SEC << " seconds\n";
+        if (proofIndex + 1 == iterations60) cout << "Proof for soundness 2^-60 done: " << ((double) proveTime) / CLOCKS_PER_SEC << " seconds\n";
+        if (proofIndex + 1 == iterations80) cout << "Proof for soundness 2^-80 done: " << ((double) proveTime) / CLOCKS_PER_SEC << " seconds\n";
+    }
+
+    clock_t verifyTime = 0;
+    for (int proofIndex = 0; proofIndex < iterations80; proofIndex++) {
+        clock_t t = clock();
+        assert(verify(secrets[proofIndex], CRSs[proofIndex], proofs[proofIndex], input, output) == 1);
+        verifyTime += clock() - t;
+        if (proofIndex + 1 == iterations40) cout << "Verify for soundness 2^-40 done: " << ((double) verifyTime) / CLOCKS_PER_SEC << " seconds\n";
+        if (proofIndex + 1 == iterations60) cout << "Verify for soundness 2^-60 done: " << ((double) verifyTime) / CLOCKS_PER_SEC << " seconds\n";
+        if (proofIndex + 1 == iterations80) cout << "Verify for soundness 2^-80 done: " << ((double) verifyTime) / CLOCKS_PER_SEC << " seconds\n";
+    }
+}
+
+void testnxnxnMatrixMult(int size) {
+    string testName = string("n=") + to_string(size) +  "_m=" + to_string(size) + "_k=" + to_string(size);
+    cout << "##############################################################\n";
+    cout << "  Testing: " << testName << "\n";
+    cout << "##############################################################\n";
+    clock_t t = clock();
+    testFile(testName, 64);
+    t = clock() - t;
+    cout << "Tested: " << testName << "\n";
+    cout << "Spent " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+}
+
+
 void testMatrixMultCircuit(const QRP& qrp, const SecretState& state, const CRS& crs) {
     Vec<ZZ_p> input;
     input.SetLength(qrp.circuit.numberOfInputWires);
@@ -239,72 +409,6 @@ void testMatrixMultCircuit(const QRP& qrp, const SecretState& state, const CRS& 
     assert (verify(state, crs, pi, input, output) == 1);
     t = clock() - t;
     cout << "Verify done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
-}
-
-void testFile(string testName, long k) {
-    string outDir = "./out/setups/" + testName + "/";
-    string path = outDir + testName;
-    string circuitPath = path + "_circuit.txt";
-    string secretPath = path + "_secret.txt";
-    string crsPath = path + "_crs.txt";
-    string qrpPath = path + "_qrp.txt";
-    string ioqrpPath = path  + "_io_qrp.txt";
-    const Circuit c = circuitFromFile(circuitPath);
-
-    long extensionDegree = 2;
-    if (c.numberOfMultiplicationGates > 4) extensionDegree = 3;
-    if (c.numberOfMultiplicationGates > 8) extensionDegree = 4;
-    if (c.numberOfMultiplicationGates > 16) extensionDegree = 5;
-    if (c.numberOfMultiplicationGates > 32) extensionDegree = 6;
-    if (c.numberOfMultiplicationGates > 64) extensionDegree = 7;
-    if (c.numberOfMultiplicationGates > 128) extensionDegree = 8;
-    if (c.numberOfMultiplicationGates > 256) extensionDegree = 9;
-    if (c.numberOfMultiplicationGates > 512) extensionDegree = 10;
-    if (c.numberOfMultiplicationGates > 1024) extensionDegree = 11;
-    if (c.numberOfMultiplicationGates > 2048) extensionDegree = 12;
-    if (c.numberOfMultiplicationGates > 4096) extensionDegree = 13;
-    if (c.numberOfMultiplicationGates > 8192) extensionDegree = 14;
-    if (c.numberOfMultiplicationGates > 16384) extensionDegree = 15;
-    if (c.numberOfMultiplicationGates > 32768) extensionDegree = 16;
-    init(k, extensionDegree);
-
-    
-
-    // return;
-    const QRP qrp = computeOrReadQRP(qrpPath, circuitPath);
-
-
-    clock_t t = clock();
-    bool success;
-    SecretState state = readSecretState(secretPath, success);
-    if (!success) {
-        state = setup(qrp, 512, 64);
-        writeSecretState(state, secretPath);
-    }
-    t = clock() - t;
-    cout << "Secret done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
-    
-    t = clock();
-    CRS crs = readCRS(crsPath, success);
-    if (!success) {
-        crs = getCRS(qrp, state);
-        writeCRS(crs, crsPath);
-    }
-    t = clock() - t;
-    cout << "CRS done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
-    
-    testMatrixMultCircuit(qrp, state, crs);
-
-}
-
-void testnxnxnMatrixMult(int size) {
-    string testName = string("n=") + to_string(size) +  "_m=" + to_string(size) + "_k=" + to_string(size);
-    cout << "Testing: " << testName << "\n";
-    clock_t t = clock();
-    testFile(testName, 64);
-    t = clock() - t;
-    cout << "Tested: " << testName << "\n";
-    cout << "Spent " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 }
 
 /**
@@ -353,9 +457,7 @@ void testNaiveSoundness(int size, long k, long d) {
 
 }
 
-int main() {
-    // testNaiveSoundness(10, 64, 40);
-    // return 0;
+void testAllNaiveSoundnessParameters() {
     cout << "##################################################" << endl;
     cout << "--------------------------40----------------------" << endl;
     cout << "##################################################" << endl;
@@ -381,9 +483,12 @@ int main() {
 
         testNaiveSoundness(i, 64, 80);
     }
-    // testnxnxnMatrixMult(10);
-    // return 0;
-    // for (int i = 2; i <=25; i++) {
-    //     testnxnxnMatrixMult(i);
-    // }
+}
+
+int main() {    
+    testnxnxnMatrixMult(2);
+    return 0;
+    for (int i = 2; i <=18; i++) {
+        testnxnxnMatrixMult(i);
+    }
 }
