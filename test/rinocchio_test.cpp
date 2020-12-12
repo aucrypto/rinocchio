@@ -486,8 +486,8 @@ void testAllNaiveSoundnessParameters() {
 }
 
 int main() {    
-    testnxnxnMatrixMult(2);
-    return 0;
+    // testnxnxnMatrixMult(2);
+    // return 0;
     for (int i = 2; i <=18; i++) {
         testnxnxnMatrixMult(i);
     }
