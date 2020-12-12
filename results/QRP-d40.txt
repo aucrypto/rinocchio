@@ -1,0 +1,88 @@
+
+d40053:rinocchio au521209$ make run
+g++ -O2 -std=c++11 -I./include test/rinocchio_test.cpp src/*.cpp -o out/rinocchio -pthread -lntl -lgmp -lm
+./out/rinocchio
+##################################################
+--------------------------40----------------------
+##################################################
+Testing: n=2_m=2_k=2, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 3.6e-05 seconds
+Target polynomial computed: 0.001395 seconds
+V, W and Y computed: 0.048331 seconds
+QRP: 0.049808 seconds
+Wrote QRP: 0.008537 seconds.
+QRP was computed and written to file.
+Testing: n=3_m=3_k=3, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.000102 seconds
+Target polynomial computed: 0.013391 seconds
+V, W and Y computed: 0.234916 seconds
+QRP: 0.248452 seconds
+Wrote QRP: 0.080486 seconds.
+QRP was computed and written to file.
+Testing: n=4_m=4_k=4, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.000208 seconds
+Target polynomial computed: 0.071451 seconds
+V, W and Y computed: 0.928189 seconds
+QRP: 0.999907 seconds
+Wrote QRP: 0.381862 seconds.
+QRP was computed and written to file.
+Testing: n=5_m=5_k=5, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.00042 seconds
+Target polynomial computed: 0.251272 seconds
+V, W and Y computed: 2.84214 seconds
+QRP: 3.0939 seconds
+Wrote QRP: 1.38534 seconds.
+QRP was computed and written to file.
+Testing: n=6_m=6_k=6, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.000905 seconds
+Target polynomial computed: 0.677696 seconds
+V, W and Y computed: 7.52514 seconds
+QRP: 8.20382 seconds
+Wrote QRP: 3.42756 seconds.
+QRP was computed and written to file.
+Testing: n=7_m=7_k=7, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.001621 seconds
+Target polynomial computed: 1.64284 seconds
+V, W and Y computed: 17.6986 seconds
+QRP: 19.3432 seconds
+Wrote QRP: 8.22097 seconds.
+QRP was computed and written to file.
+Testing: n=8_m=8_k=8, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.002223 seconds
+Target polynomial computed: 3.52627 seconds
+V, W and Y computed: 37.8715 seconds
+QRP: 41.4001 seconds
+Wrote QRP: 17.6019 seconds.
+QRP was computed and written to file.
+Testing: n=9_m=9_k=9, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.003163 seconds
+Target polynomial computed: 6.97497 seconds
+V, W and Y computed: 74.7547 seconds
+QRP: 81.733 seconds
+Wrote QRP: 35.1691 seconds.
+QRP was computed and written to file.
+Testing: n=10_m=10_k=10, soundness error 2^-40
+modulus: [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.00453 seconds
+Target polynomial computed: 12.9215 seconds
+V, W and Y computed: 137.165 seconds
+QRP: 150.091 seconds
+Wrote QRP: 65.9332 seconds.
+QRP was computed and written to file.

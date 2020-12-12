@@ -1,0 +1,85 @@
+d40053:~ au521209$ cd Documents/crycom/rinocchio/
+d40053:rinocchio au521209$ make run
+g++ -O2 -std=c++11 -I./include test/rinocchio_test.cpp src/*.cpp -o out/rinocchio -pthread -lntl -lgmp -lm
+./out/rinocchio
+Testing: n=2_m=2_k=2, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 4e-05 seconds
+Target polynomial computed: 0.001663 seconds
+V, W and Y computed: 0.106927 seconds
+QRP: 0.108682 seconds
+Wrote QRP: 0.013818 seconds.
+QRP was computed and written to file.
+Testing: n=3_m=3_k=3, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 9e-05 seconds
+Target polynomial computed: 0.016822 seconds
+V, W and Y computed: 0.412408 seconds
+QRP: 0.429371 seconds
+Wrote QRP: 0.120754 seconds.
+QRP was computed and written to file.
+Testing: n=4_m=4_k=4, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.000213 seconds
+Target polynomial computed: 0.085573 seconds
+V, W and Y computed: 1.44891 seconds
+QRP: 1.53476 seconds
+Wrote QRP: 0.585907 seconds.
+QRP was computed and written to file.
+Testing: n=5_m=5_k=5, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.00042 seconds
+Target polynomial computed: 0.297452 seconds
+V, W and Y computed: 4.44404 seconds
+QRP: 4.74197 seconds
+Wrote QRP: 1.96264 seconds.
+QRP was computed and written to file.
+Testing: n=6_m=6_k=6, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.000905 seconds
+Target polynomial computed: 0.842125 seconds
+V, W and Y computed: 10.5231 seconds
+QRP: 11.3663 seconds
+Wrote QRP: 5.24233 seconds.
+QRP was computed and written to file.
+Testing: n=7_m=7_k=7, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.001532 seconds
+Target polynomial computed: 2.08687 seconds
+V, W and Y computed: 24.4669 seconds
+QRP: 26.5555 seconds
+Wrote QRP: 12.5741 seconds.
+QRP was computed and written to file.
+Testing: n=8_m=8_k=8, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.002388 seconds
+Target polynomial computed: 4.4958 seconds
+V, W and Y computed: 54.1416 seconds
+QRP: 58.6399 seconds
+Wrote QRP: 27.8098 seconds.
+QRP was computed and written to file.
+Testing: n=9_m=9_k=9, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.003436 seconds
+Target polynomial computed: 9.21017 seconds
+V, W and Y computed: 105.557 seconds
+QRP: 114.771 seconds
+Wrote QRP: 56.6645 seconds.
+QRP was computed and written to file.
+Testing: n=10_m=10_k=10, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP file does not exist.
+Subset of exceptional set computed: 0.004685 seconds
+Target polynomial computed: 17.1774 seconds
+V, W and Y computed: 191.999 seconds
+QRP: 209.182 seconds
+Wrote QRP: 107.405 seconds.
+QRP was computed and written to file.

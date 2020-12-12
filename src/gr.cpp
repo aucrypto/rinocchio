@@ -84,9 +84,11 @@ ZZ_pE getInverse(ZZ_pE element) {
 
 ZZ_pX primitiveIrredPoly(long degree) {
     ZZ_pX P;
+    if (degree < 2) {
+        std::cout << "Degree of quotion polynomial was " << degree << " but must be at least 2\n";
+        return P;
+    }
     P = 1;
-    if (degree < 2) return P;
-    if (degree > 32) return P;
     SetCoeff(P, degree);
 
     switch (degree)
@@ -250,15 +252,19 @@ ZZ_pX primitiveIrredPoly(long degree) {
         SetCoeff(P, 23);
         SetCoeff(P, 27);
         SetCoeff(P, 29);
+        break;
     case 60: //For soundness error 2^60
         // x^60 + x^1 + 1
         SetCoeff(P, 1);
+        break;
     case 80: //For soundness error 2^80
         // x^80 + x^75 + x^27 + x^17 + 1
         SetCoeff(P, 17);
         SetCoeff(P, 27);
         SetCoeff(P, 75);
+        break;
     default:
+        std::cout << "Unsupported extension degree: " << degree << std::endl;
         break;
     }
     return P;

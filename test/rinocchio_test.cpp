@@ -271,46 +271,11 @@ void testFile(string testName, long k) {
     if (c.numberOfMultiplicationGates > 32768) extensionDegree = 16;
     init(k, extensionDegree);
 
-    // IOQRP ioqrp;
-    // ifstream File;
-    // {
-    //     File.open(ioqrpPath, ios::in);
-    //     if (File) {
-    //         cout << "Read ioqrp\n";
-    //         File >> ioqrp;
-    //         File.close();
-    //     } else {
-    //         cout << "Computing ioqrp\n";
-    //         ioqrp = writeIOQRP(ioqrpPath, c, k, extensionDegree);
-    //     }
-    // }
-    // string vPolyPath = path + "_v.txt";
-    // string wPolyPath = path + "_w.txt";
-    // string yPolyPath = path + "_y.txt";
-    // {
-    //     File.open(yPolyPath, ios::in);
-    //     if (File) {
-    //         cout << "y polys were precomputed\n";
-    //     } else {
-    //         cout << "Compute y polys\n";
-    //         writeYPolys(yPolyPath, ioqrp);
-    //     }
-    // }
-    // {
-    //     File.open(vPolyPath, ios::in);
-    //     if (File) {
-    //         cout << "v polys were precomputed\n";
-    //     } else {
-    //         cout << "Compute v polys\n";
-    //         writeVandWPolys(vPolyPath, wPolyPath, yPolyPath, ioqrp);
-    //     }
-    // }
     
 
     // return;
     const QRP qrp = computeOrReadQRP(qrpPath, circuitPath);
 
-    //todo test encoding.
 
     clock_t t = clock();
     bool success;
@@ -345,10 +310,83 @@ void testnxnxnMatrixMult(int size) {
     cout << "Spent " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 }
 
+/**
+ * Instantiates the protocol with GR(2^k, d) to achieve soundness error 2^-d
+ * Precondtion: d is one of 40, 60, or 80
+ **/
+void testNaiveSoundness(int size, long k, long d) {
+    string testName = string("n=") + to_string(size) +  "_m=" + to_string(size) + "_k=" + to_string(size);
+    cout << "Testing: " << testName << ", soundness error 2^-" << d << "\n";
+    init(k, d);
+
+    string outDir = "./out/setups/" + testName + "/";
+    string path = outDir + testName;
+    string circuitPath = path + "_circuit.txt";
+    const Circuit c = circuitFromFile(circuitPath);
+
+    string qrpPath = path + "_d=" + to_string(d) + "_qrp.txt";
+    const QRP qrp = computeOrReadQRP(qrpPath, circuitPath);
+
+    string secretPath = path + "_d=" + to_string(d) + "_secret.txt";
+    string crsPath = path + "_d=" + to_string(d) + "_crs.txt";
+
+    clock_t t = clock();
+    bool success;
+    SecretState state = readSecretState(secretPath, success);
+    if (!success) {
+        cout << "Computing secret state\n";
+        t = clock();
+        state = setup(qrp, 512, 64);
+        t = clock() - t;
+        cout << "Secret done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+        writeSecretState(state, secretPath);
+    }
+    
+    CRS crs = readCRS(crsPath, success);
+    if (!success) {
+        cout << "Computing CRS\n";
+        t = clock();
+        crs = getCRS(qrp, state);
+        t = clock() - t;
+        cout << "CRS done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+        writeCRS(crs, crsPath);
+    }
+    
+    // testMatrixMultCircuit(qrp, state, crs);
+
+}
+
 int main() {
+    // testNaiveSoundness(2, 64, 40);
+    // return 0;
+    cout << "##################################################" << endl;
+    cout << "--------------------------40----------------------" << endl;
+    cout << "##################################################" << endl;
+    for (int i = 2; i <= 10; i++) {
+
+        testNaiveSoundness(i, 64, 40);
+    }
+
+    cout << "##################################################" << endl;
+    cout << "--------------------------60----------------------" << endl;
+    cout << "##################################################" << endl;
+
+    for (int i = 2; i <= 10; i++) {
+
+        testNaiveSoundness(i, 64, 60);
+    }
+
+    cout << "##################################################" << endl;
+    cout << "--------------------------80----------------------" << endl;
+    cout << "##################################################" << endl;
+
+    for (int i = 2; i <= 10; i++) {
+
+        testNaiveSoundness(i, 64, 80);
+    }
     // testnxnxnMatrixMult(10);
     // return 0;
-    for (int i = 2; i <=25; i++) {
-        testnxnxnMatrixMult(i);
-    }
+    // for (int i = 2; i <=25; i++) {
+    //     testnxnxnMatrixMult(i);
+    // }
 }

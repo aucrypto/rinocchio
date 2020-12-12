@@ -3,11 +3,13 @@
 #include <joye_libert.h>
 #include <NTL/ZZ_pE.h>
 
+#include <time.h>
+
 using namespace NTL;
 
 SecretState setup(const QRP& qrp, long l, long k) {
     SecretState ss;
-
+    clock_t t = clock();
     //Find non-zero s in exceptional set (i.e. in A^*):
     ZZ_pE s;
     s = randomNonZeroInExceptionalSet();
@@ -27,6 +29,9 @@ SecretState setup(const QRP& qrp, long l, long k) {
     do {
         beta = random_ZZ_pE();
     } while (IsZero(beta));
+    t = clock() - t;
+    std::cout << "Secret elements found: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
+    t = clock();
 
     ss.inVofS.SetLength(qrp.circuit.numberOfInputWires);
     ss.inWofS.SetLength(qrp.circuit.numberOfInputWires);
@@ -42,6 +47,8 @@ SecretState setup(const QRP& qrp, long l, long k) {
         ss.outWofS[k] = eval(qrp.W[k + qrp.outOffset], s) * r_w;
         ss.outYofS[k] = eval(qrp.Y[k + qrp.outOffset], s) * r_y;
     }
+    t = clock() - t;
+    std::cout << "Wire polynomials evaluated in s: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
 
     ss.s = s;
     ss.r_v = r_v;
@@ -60,7 +67,7 @@ SecretState setup(const QRP& qrp, long l, long k) {
 
 
 CRS getCRS(const QRP& prog, const SecretState& ss) {
-    
+    clock_t t = clock();
     //{E(S^i)}_i=0^d
     //{E(alpha * S^i)}_i=0^d
     Vec<JLEncoding> powersOfS;
@@ -78,6 +85,9 @@ CRS getCRS(const QRP& prog, const SecretState& ss) {
             acc = acc * ss.s;
         }
     }
+    t = clock() - t;
+    std::cout << "Powers of s encrypted: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
+    t = clock();
 
     long sizeOfImid = prog.circuit.numberOfMidWires;
     Vec<JLEncoding> rvVofS, rwWofS, ryYofS, alpharvVofS, alpharwWofS, alpharyYofS, betaSums;
@@ -120,6 +130,8 @@ CRS getCRS(const QRP& prog, const SecretState& ss) {
         kthBetaSum = ss.beta * (rvVkofS + rwWkofS + ryYkofS);
         betaSums[k] = encode(kthBetaSum, ss.secretKey);
     }
+    t = clock() - t;
+    std::cout << "Masked wire polynomials in s encrypted: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
     //pk
 
     CRS crs;//Todo is it significantly faster not to copy here?

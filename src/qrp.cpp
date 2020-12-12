@@ -22,18 +22,13 @@ ZZ_pEX kthDelta(const ZZ_pEX& targetPolynomial, const Vec<ZZ_pE>& exceptionalSet
 }
 
 QRP getQRP(const Circuit& circuit, long k, long minDegree) {
+    clock_t tTotal = clock();
     QRP qrp;
     qrp.circuit = circuit;
     qrp.midOffset = circuit.numberOfInputWires;
     qrp.outOffset = circuit.numberOfWires - circuit.numberOfOutputWires;
-    // ZZ mod = ZZ(1) << k;
-    // ZZ_p::init(mod);
-    // ZZ_pX polyMod = primitiveIrredPoly(minDegree); //todo check if minDegree is >= log_2(multGates)
-    // ZZ_pE::init(polyMod);
-    // todo fix automatic minimal modulus
     
     //Pick distinct elements of exceptional set for each gate:
-    cout << "Computing subset of exceptional set...\n";
     clock_t t = clock();
     const Vec<ZZ_pE> exceptionalSet = getExceptionalSubset(circuit.numberOfMultiplicationGates);
     t = clock() - t;
@@ -88,10 +83,13 @@ QRP getQRP(const Circuit& circuit, long k, long minDegree) {
     }
     t = clock() - t;
     cout << "V, W and Y computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+    tTotal = clock() - tTotal;
+    cout << "QRP: " << ((double) tTotal) / CLOCKS_PER_SEC << " seconds\n";
     return qrp;
 }
 
 void getLargeQRP(const Circuit& circuit, long k, long minDegree) {
+    // cout << "Computing subset of exceptional set...\n";
     QRP qrp;
     qrp.circuit = circuit;
     qrp.midOffset = circuit.numberOfInputWires;
@@ -103,8 +101,8 @@ void getLargeQRP(const Circuit& circuit, long k, long minDegree) {
     // todo fix automatic minimal modulus
     
     //Pick distinct elements of exceptional set for each gate:
-    cout << "Computing subset of exceptional set...\n";
     clock_t t = clock();
+    clock_t tTotal = clock();
     const Vec<ZZ_pE> exceptionalSet = getExceptionalSubset(circuit.numberOfMultiplicationGates);
     t = clock() - t;
     cout << "Subset of exceptional set computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
@@ -158,6 +156,8 @@ void getLargeQRP(const Circuit& circuit, long k, long minDegree) {
     }
     t = clock() - t;
     cout << "V, W and Y computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+    tTotal = clock() - tTotal;
+    cout << "QRP: " << ((double) tTotal) / CLOCKS_PER_SEC << " seconds\n";
 }
 
 
@@ -169,28 +169,16 @@ ostream& operator<<(ostream& s, const QRP& qrp) {
     s << "\n";
     s << qrp.outOffset;
     s << "\n";
-    t = clock() - t;
-    cout << "Wrote QRP circuit: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
-    t = clock();
     s << qrp.t;
     s << "\n";
-    t = clock() - t;
-    cout << "Wrote QRP target: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
-    t = clock();
     s << qrp.V;
     s << "\n";
-    t = clock() - t;
-    cout << "Wrote QRP V: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
-    t = clock();
     s << qrp.W;
     s << "\n";
-    t = clock() - t;
-    cout << "Wrote QRP W: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
-    t = clock();
     s << qrp.Y;
     s << "\n";
     t = clock() - t;
-    cout << "Wrote QRP Y: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
+    cout << "Wrote QRP: " << ((double) t) / CLOCKS_PER_SEC << " seconds.\n";
 
     return s;
 }
