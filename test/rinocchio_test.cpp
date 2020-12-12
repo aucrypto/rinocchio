@@ -212,17 +212,14 @@ QRP computeOrReadQRP(string qrpPath, string circuitPath) {
 }
 
 void testMatrixMultCircuit(const QRP& qrp, const SecretState& state, const CRS& crs) {
-    clock_t t = clock();
     Vec<ZZ_p> input;
     input.SetLength(qrp.circuit.numberOfInputWires);
     input[0] = ZZ_p(1);
     for (long i = 1; i < qrp.circuit.numberOfInputWires; i++) {
         input[i] = to_ZZ_p(RandomBits_ZZ(64));
     }
-    t = clock() - t;
-    cout << "input drawn: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
-    t = clock();
+    clock_t t = clock();
     Vec<ZZ_p> allWireValues = eval(qrp.circuit, input);
     t = clock() - t;
     cout << "Circuit evaluated: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
@@ -352,12 +349,12 @@ void testNaiveSoundness(int size, long k, long d) {
         writeCRS(crs, crsPath);
     }
     
-    // testMatrixMultCircuit(qrp, state, crs);
+    testMatrixMultCircuit(qrp, state, crs);
 
 }
 
 int main() {
-    // testNaiveSoundness(2, 64, 40);
+    // testNaiveSoundness(10, 64, 40);
     // return 0;
     cout << "##################################################" << endl;
     cout << "--------------------------40----------------------" << endl;

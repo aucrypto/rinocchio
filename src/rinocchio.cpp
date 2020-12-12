@@ -20,7 +20,6 @@ using namespace NTL;
 
 Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     Proof proof;
-    cout << "Start prove...\n";
     clock_t t;
     // Compute p = V*W-Y
     // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
@@ -85,7 +84,7 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
 
     }
     t = clock() - t;
-    cout << "mid polynomials computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+    cout << "Encryptions of mid wire polynomials computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 
     // E(h(s))
     // E(alpha * h(s))
@@ -110,7 +109,6 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
 }
 
 bool verify(const SecretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output) {
-    cout << "Verify start\n";
     clock_t t = clock();
     ZZ_pE rvVmidOfS = decode(pi.rvVmidOfS, secret.secretKey);
     ZZ_pE rwWmidOfS = decode(pi.rwWmidOfS, secret.secretKey);
@@ -181,6 +179,5 @@ bool verify(const SecretState& secret, const CRS& crs, const Proof& pi, const Ve
         cout << "r_y * h*t: " << secret.r_y * hMultT << "\n";
         return false;
     }
-    cout << "Verified!\n";
     return  true;
 }

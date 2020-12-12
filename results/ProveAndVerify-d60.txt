@@ -1,0 +1,129 @@
+##################################################
+--------------------------60----------------------
+##################################################
+Testing: n=2_m=2_k=2, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 1.3e-05 seconds
+V, W and Y computed: 0.001326 seconds
+H computed: 0.00603 seconds
+Encryptions of mid wire polynomials computed: 0.064146 seconds
+H(s) computed: 1.46334 seconds
+Proof done: 1.53492 seconds
+done decoding, took 0.175948
+done checking decodings, took 0.000138
+done computing io, took 5.5e-05
+done checking h, took 6.9e-05
+Verify done: 0.176952 seconds
+Testing: n=3_m=3_k=3, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 3e-05 seconds
+V, W and Y computed: 0.012335 seconds
+H computed: 0.014801 seconds
+Encryptions of mid wire polynomials computed: 0.213779 seconds
+H(s) computed: 4.67355 seconds
+Proof done: 4.91457 seconds
+done decoding, took 0.169666
+done checking decodings, took 0.000126
+done computing io, took 0.000255
+done checking h, took 0.000195
+Verify done: 0.170273 seconds
+Testing: n=4_m=4_k=4, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 5e-05 seconds
+V, W and Y computed: 0.059085 seconds
+H computed: 0.03239 seconds
+Encryptions of mid wire polynomials computed: 0.513311 seconds
+H(s) computed: 10.5612 seconds
+Proof done: 11.1662 seconds
+done decoding, took 0.174462
+done checking decodings, took 0.000127
+done computing io, took 0.0002
+done checking h, took 6.6e-05
+Verify done: 0.174888 seconds
+Testing: n=5_m=5_k=5, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 9.1e-05 seconds
+V, W and Y computed: 0.206398 seconds
+H computed: 0.064457 seconds
+Encryptions of mid wire polynomials computed: 0.979385 seconds
+H(s) computed: 19.9484 seconds
+Proof done: 21.199 seconds
+done decoding, took 0.170833
+done checking decodings, took 0.000126
+done computing io, took 0.000308
+done checking h, took 6.7e-05
+Verify done: 0.171365 seconds
+Testing: n=6_m=6_k=6, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 0.000156 seconds
+V, W and Y computed: 0.579605 seconds
+H computed: 0.109018 seconds
+Encryptions of mid wire polynomials computed: 1.68494 seconds
+H(s) computed: 34.1665 seconds
+Proof done: 36.5405 seconds
+done decoding, took 0.177045
+done checking decodings, took 0.000133
+done computing io, took 0.000457
+done checking h, took 7e-05
+Verify done: 0.177736 seconds
+Testing: n=7_m=7_k=7, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 0.000222 seconds
+V, W and Y computed: 1.36341 seconds
+H computed: 0.177222 seconds
+Encryptions of mid wire polynomials computed: 2.68761 seconds
+H(s) computed: 52.2253 seconds
+Proof done: 56.4542 seconds
+done decoding, took 0.174103
+done checking decodings, took 0.000131
+done computing io, took 0.000616
+done checking h, took 6.9e-05
+Verify done: 0.174951 seconds
+Testing: n=8_m=8_k=8, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 0.000397 seconds
+V, W and Y computed: 2.96578 seconds
+H computed: 0.281098 seconds
+Encryptions of mid wire polynomials computed: 4.03571 seconds
+H(s) computed: 77.4407 seconds
+Proof done: 84.7243 seconds
+done decoding, took 0.173036
+done checking decodings, took 0.00013
+done computing io, took 0.000804
+done checking h, took 6.9e-05
+Verify done: 0.174069 seconds
+Testing: n=9_m=9_k=9, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 0.000445 seconds
+V, W and Y computed: 5.92572 seconds
+H computed: 0.403135 seconds
+Encryptions of mid wire polynomials computed: 5.74714 seconds
+H(s) computed: 109.5 seconds
+Proof done: 121.578 seconds
+done decoding, took 0.177406
+done checking decodings, took 0.000128
+done computing io, took 0.000998
+done checking h, took 7e-05
+Verify done: 0.178633 seconds
+Testing: n=10_m=10_k=10, soundness error 2^-60
+modulus: [1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+QRP was read from file.
+Circuit evaluated: 0.000736 seconds
+V, W and Y computed: 15.646 seconds
+H computed: 0.520783 seconds
+Encryptions of mid wire polynomials computed: 7.93054 seconds
+H(s) computed: 150.961 seconds
+Proof done: 175.061 seconds
+done decoding, took 0.178283
+done checking decodings, took 0.000138
+done computing io, took 0.001245
+done checking h, took 0.000108
+Verify done: 0.179806 seconds
