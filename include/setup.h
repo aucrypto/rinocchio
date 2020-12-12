@@ -20,7 +20,6 @@ struct SecretState {
     ZZ_pE tOfS;
     Vec<ZZ_pE> inVofS;
     Vec<ZZ_pE> inWofS;
-    Vec<ZZ_pE> inYofS;
     Vec<ZZ_pE> outVofS;
     Vec<ZZ_pE> outWofS;
     Vec<ZZ_pE> outYofS;

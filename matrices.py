@@ -1,6 +1,6 @@
 import numpy as np
 import json
-
+from pathlib import Path
 
 def build_circuit(n, m, k):
     number_of_inputs = n*m + m*k + 1
@@ -68,7 +68,10 @@ def output_json(circuit):
     file.close()
 
 def output_text(circuit, name):
-    file = open("../out/%s.txt" % name, "w")
+    directory = ("./out/setups/%s/" % name)
+    Path(directory).mkdir(parents=True, exist_ok=True)
+
+    file = open("./out/setups/%s/%s_circuit.txt" % (name, name), "w")
     file.write(str(circuit["numberOfWires"]))
     file.write(" ")
     file.write(str(circuit["numberOfInputWires"]))
@@ -86,14 +89,17 @@ def output_text(circuit, name):
 
 
 if __name__ == "__main__":
-    A = np.array([[1,2], [3,4]])
-    B = np.array([[2,0], [0,2]])
+    # A = np.array([[1,2], [3,4]])
+    # B = np.array([[2,0], [0,2]])
+    for n in range(2,33):
+        print(n)
+        circuit = build_circuit(n, n, n)
+        output_text(circuit, "n=%d_m=%d_k=%d" %(n, n, n))
+    # n = 10
+    # m = 10
+    # k = 10
+    # circuit = build_circuit(n, m, k)
     
-    n = 10
-    m = 10
-    k = 10
-    circuit = build_circuit(n, m, k)
-    
-    output_text(circuit, "n=%d_m=%d_k=%d" %(n, m, k))
+    # output_text(circuit, "n=%d_m=%d_k=%d_circuit" %(n, n, n))
 
     # print(matrix_eval(circuit, A, B))

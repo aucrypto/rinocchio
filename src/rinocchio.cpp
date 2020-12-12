@@ -19,16 +19,22 @@ using namespace std;
 using namespace NTL;
 
 Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
+    Proof proof;
     cout << "Start prove...\n";
     clock_t t;
     // Compute p = V*W-Y
     // P = W * W * Y = (Sum c_k * v_k(x)) * (Sum c_k * w_k(x)) - (Sum c_k * y_k(x))
     t = clock();
     ZZ_pEX V, W, Y;
-    for (int k = 0; k < prog.circuit.numberOfWires; k++) {
+    for (int k = 0; k < prog.circuit.numberOfInputWires; k++) {
         V += allWireValues[k] * prog.V[k];
         W += allWireValues[k] * prog.W[k];
-        Y += allWireValues[k] * prog.Y[k];
+    }
+
+    for (int k = prog.circuit.numberOfInputWires; k < prog.circuit.numberOfWires; k++) {
+        V += allWireValues[k] * prog.V[k];
+        W += allWireValues[k] * prog.W[k];
+        Y += allWireValues[k] * prog.Y[k];//todo handle input = 0
     }
     t = clock() - t;
     cout << "V, W and Y computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
@@ -52,36 +58,29 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     // E(r_y * Ymid(S) * alpha_y)
     // E(beta( (r_v * Vmid(S)) + (r_w * Wmid(S)) +(r_y * Ymid(S)) ))
     t = clock();
-    JLEncoding rvVmidOfS;
-    JLEncoding rwWmidOfS;
-    JLEncoding ryYmidOfS;
-    JLEncoding alphaVrvVmidOfS;
-    JLEncoding alphaWrwWmidOfS;
-    JLEncoding alphaYryYmidOfS;
-    JLEncoding betaSum;
     for (int k = prog.midOffset; k < prog.outOffset; k++) {
         //Scalar multiplications
         JLEncoding tmp;
         tmp = jle_scalar_mult(crs.rvVofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
-        jle_add_assign(rvVmidOfS, tmp, crs.publicKey);
+        jle_add_assign(proof.rvVmidOfS, tmp, crs.publicKey);
         tmp = jle_scalar_mult(crs.rwWofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
-        jle_add_assign(rwWmidOfS, tmp, crs.publicKey);
+        jle_add_assign(proof.rwWmidOfS, tmp, crs.publicKey);
         tmp = jle_scalar_mult(crs.ryYofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
-        jle_add_assign(ryYmidOfS, tmp, crs.publicKey);
+        jle_add_assign(proof.ryYmidOfS, tmp, crs.publicKey);
         // rvVmidOfS += rep(allWireValues[k]) * crs.rvVofS[k - prog.midOffset];
         // rwWmidOfS += rep(allWireValues[k]) * crs.rwWofS[k - prog.midOffset];
         // ryYmidOfS += rep(allWireValues[k]) * crs.ryYofS[k - prog.midOffset];
         tmp = jle_scalar_mult(crs.alpharvVofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
-        jle_add_assign(alphaVrvVmidOfS, tmp, crs.publicKey);
+        jle_add_assign(proof.alphaVrvVmidOfS, tmp, crs.publicKey);
         tmp = jle_scalar_mult(crs.alpharwWofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
-        jle_add_assign(alphaWrwWmidOfS, tmp, crs.publicKey);
+        jle_add_assign(proof.alphaWrwWmidOfS, tmp, crs.publicKey);
         tmp = jle_scalar_mult(crs.alpharyYofS[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
-        jle_add_assign(alphaYryYmidOfS, tmp, crs.publicKey);
+        jle_add_assign(proof.alphaYryYmidOfS, tmp, crs.publicKey);
         // alphaVrvVmidOfS += rep(allWireValues[k]) * crs.alpharvVofS[k - prog.midOffset];
         // alphaWrwWmidOfS += rep(allWireValues[k]) * crs.alpharwWofS[k - prog.midOffset];
         // alphaYryYmidOfS += rep(allWireValues[k]) * crs.alpharyYofS[k - prog.midOffset];
         tmp = jle_scalar_mult(crs.betaSums[k - prog.midOffset], rep(allWireValues[k]), crs.publicKey);
-        jle_add_assign(betaSum, tmp, crs.publicKey);
+        jle_add_assign(proof.betaSum, tmp, crs.publicKey);
         // betaSum += rep(allWireValues[k]) * crs.betaSums[k - prog.midOffset];
 
     }
@@ -91,7 +90,6 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
     // E(h(s))
     // E(alpha * h(s))
 
-    // cout << H << "H" << endl;
     t = clock();
     JLEncoding vec_hOfS, vec_alphaHofS;
     for (int i = 0 ; i <= deg(H); i++) {
@@ -102,23 +100,13 @@ Proof prove(const QRP& prog, const CRS& crs, const Vec<ZZ_p>& allWireValues) {
         JLEncoding iahs = PlainMulEncryption(crs.powersOfSMultAlpha[i], ithCoeffOfH, crs.publicKey.n);
         //Todo computing the reduction would make the next step twice as fast. (And a shorter proof)
         // cout << ihs << "ihs"<< endl;
-        jle_add_assign(vec_hOfS, ihs, crs.publicKey);
-        jle_add_assign(vec_alphaHofS, iahs, crs.publicKey);
+        jle_add_assign(proof.hOfS, ihs, crs.publicKey);
+        jle_add_assign(proof.alphaHOfS, iahs, crs.publicKey);
     }
     t = clock() - t;
     cout << "H(s) computed: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";//slow
 
-    return Proof{
-        .rvVmidOfS = rvVmidOfS,
-        .rwWmidOfS = rwWmidOfS,
-        .ryYmidOfS  =ryYmidOfS,
-        .alphaVrvVmidOfS = alphaVrvVmidOfS,
-        .alphaWrwWmidOfS = alphaWrwWmidOfS,
-        .alphaYryYmidOfS = alphaYryYmidOfS,
-        .betaSum = betaSum,
-        .hOfS = vec_hOfS,
-        .alphaHOfS = vec_alphaHofS,
-    };
+    return proof;
 }
 
 bool verify(const SecretState& secret, const CRS& crs, const Proof& pi, const Vec<ZZ_p>& input, const Vec<ZZ_p>& output) {
@@ -162,14 +150,13 @@ bool verify(const SecretState& secret, const CRS& crs, const Proof& pi, const Ve
 
     t = clock() - t;
     cout << "done checking decodings, took " << ((double) t) / CLOCKS_PER_SEC << "\n";
-    cout << "Compute io polys\n";
     t = clock();
     // compute P_in
     ZZ_pE v_io, w_io, y_io;
     for (int k = 0; k < input.length(); k++) {
         v_io += input[k] * secret.inVofS[k];
         w_io += input[k] * secret.inWofS[k];
-        y_io += input[k] * secret.inYofS[k];
+        //The y polynomial for inputs is always zero
     }
     // add P_out
     for (int k = 0; k < output.length(); k++) {
@@ -181,15 +168,15 @@ bool verify(const SecretState& secret, const CRS& crs, const Proof& pi, const Ve
     cout << "done computing io, took " << ((double) t) / CLOCKS_PER_SEC << "\n";
     t = clock();
     //r_y = r_v * r_w
-    ZZ_pE computedV = secret.r_v * v_io + rvVmidOfS;
-    ZZ_pE computedW = secret.r_w * w_io + rwWmidOfS;
-    ZZ_pE computedY = secret.r_y * y_io + ryYmidOfS;
+    ZZ_pE computedV = v_io + rvVmidOfS;
+    ZZ_pE computedW = w_io + rwWmidOfS;
+    ZZ_pE computedY = y_io + ryYmidOfS;
 
     ZZ_pE computedP = computedV * computedW - computedY;
-    ZZ_pE hMultT = hOfS * secret.tOfS;// todo eliminate eval
+    ZZ_pE hMultT = hOfS * secret.tOfS;
     t = clock() - t;
     cout << "done checking h, took " << ((double) t) / CLOCKS_PER_SEC << "\n";
-    if (computedP != secret.r_y * hMultT) {
+    if (computedP != hMultT) {
         cout << "compute P: " << computedP << "\n";
         cout << "r_y * h*t: " << secret.r_y * hMultT << "\n";
         return false;

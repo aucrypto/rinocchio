@@ -12,8 +12,6 @@ ZZ_pE indexedElementInExceptionalSet(long index);
 
 Vec<ZZ_pE> getExceptionalSubset(long size);
 
-Vec<ZZ_pEX> getTargetPolynomialTerms(long size);
-
 // Random element in A
 ZZ_pE randomInExceptionalSet();
 
@@ -21,5 +19,7 @@ ZZ_pE randomInExceptionalSet();
 ZZ_pE randomNonZeroInExceptionalSet();
 
 ZZ_pE getInverse(ZZ_pE element);
+
+ZZ_pX primitiveIrredPoly(long degree);
 
 #endif

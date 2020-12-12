@@ -10,6 +10,7 @@
 #include <gr.h>
 #include <circuit.h>
 #include <qrp.h>
+#include <io_qrp.h>
 #include <setup.h>
 #include <rinocchio.h>
 
@@ -24,25 +25,13 @@
 using namespace std;
 using namespace NTL;
 
-bool modulusSet = false;
 
-void init() {
-    if (modulusSet) return;
-    modulusSet = true;
+void init(long k, long degree) {
 
-    ZZ modulus = ZZ(1) << 64;
+    ZZ modulus = ZZ(1) << k;
     ZZ_p::init(modulus);
 
-    ZZ_pX P = ZZ_pX();
-
-    // P = x^32 + x^22 + x^2 + x^1 + 1
-    SetCoeff(P, 0);
-    SetCoeff(P, 1);
-    SetCoeff(P, 2);
-    SetCoeff(P, 22);
-    SetCoeff(P, 32);
-
-    // instantiate GF(2^64, 4)
+    ZZ_pX P = primitiveIrredPoly(degree);
     ZZ_pE::init(P);
     cout << "modulus: " << P << "\n";
 }
@@ -255,30 +244,89 @@ void testMatrixMultCircuit(const QRP& qrp, const SecretState& state, const CRS& 
     cout << "Verify done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
 }
 
-void testFile(string testName) {
-    init();
+void testFile(string testName, long k) {
+    string outDir = "./out/setups/" + testName + "/";
+    string path = outDir + testName;
+    string circuitPath = path + "_circuit.txt";
+    string secretPath = path + "_secret.txt";
+    string crsPath = path + "_crs.txt";
+    string qrpPath = path + "_qrp.txt";
+    string ioqrpPath = path  + "_io_qrp.txt";
+    const Circuit c = circuitFromFile(circuitPath);
 
+    long extensionDegree = 2;
+    if (c.numberOfMultiplicationGates > 4) extensionDegree = 3;
+    if (c.numberOfMultiplicationGates > 8) extensionDegree = 4;
+    if (c.numberOfMultiplicationGates > 16) extensionDegree = 5;
+    if (c.numberOfMultiplicationGates > 32) extensionDegree = 6;
+    if (c.numberOfMultiplicationGates > 64) extensionDegree = 7;
+    if (c.numberOfMultiplicationGates > 128) extensionDegree = 8;
+    if (c.numberOfMultiplicationGates > 256) extensionDegree = 9;
+    if (c.numberOfMultiplicationGates > 512) extensionDegree = 10;
+    if (c.numberOfMultiplicationGates > 1024) extensionDegree = 11;
+    if (c.numberOfMultiplicationGates > 2048) extensionDegree = 12;
+    if (c.numberOfMultiplicationGates > 4096) extensionDegree = 13;
+    if (c.numberOfMultiplicationGates > 8192) extensionDegree = 14;
+    if (c.numberOfMultiplicationGates > 16384) extensionDegree = 15;
+    if (c.numberOfMultiplicationGates > 32768) extensionDegree = 16;
+    init(k, extensionDegree);
 
-    string outDir = "./out/";
-    string circuitPath = outDir + testName +"_circuit.txt";
-    string qrpPath = outDir + testName + "_qrp.txt";
+    // IOQRP ioqrp;
+    // ifstream File;
+    // {
+    //     File.open(ioqrpPath, ios::in);
+    //     if (File) {
+    //         cout << "Read ioqrp\n";
+    //         File >> ioqrp;
+    //         File.close();
+    //     } else {
+    //         cout << "Computing ioqrp\n";
+    //         ioqrp = writeIOQRP(ioqrpPath, c, k, extensionDegree);
+    //     }
+    // }
+    // string vPolyPath = path + "_v.txt";
+    // string wPolyPath = path + "_w.txt";
+    // string yPolyPath = path + "_y.txt";
+    // {
+    //     File.open(yPolyPath, ios::in);
+    //     if (File) {
+    //         cout << "y polys were precomputed\n";
+    //     } else {
+    //         cout << "Compute y polys\n";
+    //         writeYPolys(yPolyPath, ioqrp);
+    //     }
+    // }
+    // {
+    //     File.open(vPolyPath, ios::in);
+    //     if (File) {
+    //         cout << "v polys were precomputed\n";
+    //     } else {
+    //         cout << "Compute v polys\n";
+    //         writeVandWPolys(vPolyPath, wPolyPath, yPolyPath, ioqrp);
+    //     }
+    // }
+    
+
+    // return;
     const QRP qrp = computeOrReadQRP(qrpPath, circuitPath);
+
+    //todo test encoding.
 
     clock_t t = clock();
     bool success;
-    SecretState state = readSecretState(outDir + testName + "_secret.txt", success);
+    SecretState state = readSecretState(secretPath, success);
     if (!success) {
         state = setup(qrp, 512, 64);
-        writeSecretState(state, outDir + testName + "_secret.txt");
+        writeSecretState(state, secretPath);
     }
     t = clock() - t;
     cout << "Secret done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
     
     t = clock();
-    CRS crs = readCRS(outDir + testName + "_crs.txt", success);
+    CRS crs = readCRS(crsPath, success);
     if (!success) {
         crs = getCRS(qrp, state);
-        writeCRS(crs, outDir + testName + "_crs.txt");
+        writeCRS(crs, crsPath);
     }
     t = clock() - t;
     cout << "CRS done: " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
@@ -287,7 +335,20 @@ void testFile(string testName) {
 
 }
 
+void testnxnxnMatrixMult(int size) {
+    string testName = string("n=") + to_string(size) +  "_m=" + to_string(size) + "_k=" + to_string(size);
+    cout << "Testing: " << testName << "\n";
+    clock_t t = clock();
+    testFile(testName, 64);
+    t = clock() - t;
+    cout << "Tested: " << testName << "\n";
+    cout << "Spent " << ((double) t) / CLOCKS_PER_SEC << " seconds\n";
+}
+
 int main() {
-    string size = "10";
-    testFile(string("n=") + size +  "_m=" + size + "_k=" + size);
+    // testnxnxnMatrixMult(10);
+    // return 0;
+    for (int i = 2; i <=25; i++) {
+        testnxnxnMatrixMult(i);
+    }
 }

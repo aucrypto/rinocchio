@@ -41,20 +41,6 @@ Vec<ZZ_pE> getExceptionalSubset(long size) {
     return elms;
 }
 
-Vec<ZZ_pEX> getTargetPolynomialTerms(long size) {
-    Vec<ZZ_pEX> elms;
-    elms.SetLength(size);
-
-    for (long i = 0; i < size; i++) {
-        ZZ_pEX term;
-        SetX(term);
-        SetCoeff(term, 0, -indexedElementInExceptionalSet(i));
-        elms[i] = term;
-    }
-
-    return elms;
-}
-
 // Random element in A
 ZZ_pE randomInExceptionalSet() {
     ZZ_pX a = ZZ_pX();
@@ -93,4 +79,187 @@ ZZ_pE getInverse(ZZ_pE element) {
     divide(inverse, to_ZZ_pX(s), rPX);
 
     return to_ZZ_pE(inverse); 
+}
+
+
+ZZ_pX primitiveIrredPoly(long degree) {
+    ZZ_pX P;
+    P = 1;
+    if (degree < 2) return P;
+    if (degree > 32) return P;
+    SetCoeff(P, degree);
+
+    switch (degree)
+    {
+    case 2:
+        // x^2 + x^1 + 1
+        SetCoeff(P, 1);
+        break;
+    case 3:
+        // x^3 + x^1 + 1
+        SetCoeff(P, 1);
+        break;
+    case 4:
+        // x^4 + x^1 + 1
+        SetCoeff(P, 1);
+        break;
+    case 5:
+        // x^5 + x^2 + 1
+        SetCoeff(P, 2);
+        break;
+    case 6:
+        // x^6 + x^1 + 1
+        SetCoeff(P, 1);
+        break;
+    case 7:
+        // x^7 + x^1 + 1
+        SetCoeff(P, 1);
+        break;
+    case 8:
+        // x^8 + x^4 + x^3 + x^2 + 1
+        SetCoeff(P, 4);
+        SetCoeff(P, 3);
+        SetCoeff(P, 2);
+        break;
+    case 9:
+        // x^9 + x^4 + 1
+        SetCoeff(P, 4);
+        break;
+    case 10:
+        // x^10 + x^3 + 1
+        SetCoeff(P, 3);
+        break;
+    case 11:
+        // x^11 + x^2 + 1
+        SetCoeff(P, 2);
+        break;
+    case 12:
+        // x^12 + x^6 + x^4 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 4);
+        SetCoeff(P, 6);
+        break;
+    case 13:
+        // x^13 + x^4 + x^3 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 3);
+        SetCoeff(P, 4);
+        break;
+    case 14:
+        // x^14 + x^8 + x^6 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 6);
+        SetCoeff(P, 8);
+        break;
+    case 15:
+        // x^15 + x^1 + 1
+        SetCoeff(P, 1);
+        break;
+    case 16:
+        // x^16 + x^9 + x^8 + x^7 + x^6 + x^4 + x^3 + x^2 + 1
+        SetCoeff(P, 2);
+        SetCoeff(P, 3);
+        SetCoeff(P, 4);
+        SetCoeff(P, 6);
+        SetCoeff(P, 7);
+        SetCoeff(P, 8);
+        SetCoeff(P, 9);
+        break;
+    case 17:
+        // x^17 + x^3 + 1
+        SetCoeff(P, 3);
+        break;
+    case 18:
+        // x^18 + x^5 + x^4 + x^3 + x^2 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 2);
+        SetCoeff(P, 3);
+        SetCoeff(P, 4);
+        SetCoeff(P, 5);
+        break;
+    case 19:
+        // x^19 + x^5 + x^2 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 2);
+        SetCoeff(P, 5);
+        break;
+    case 20:
+        // x^20 + x^3 + 1
+        SetCoeff(P, 3);
+        break;
+    case 21:
+        // x^21 + x^2 + 1
+        SetCoeff(P, 2);
+        break;
+    case 22:
+        // x^22 + x^1 + 1
+        SetCoeff(P, 1);
+        break;
+    case 23:
+        // x^23 + x^5 + 1
+        SetCoeff(P, 5);
+        break;
+    case 24:
+        // x^24 + x^7 + x^2 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 2);
+        SetCoeff(P, 7);
+        break;
+    case 25:
+        // x^25 + x^3 + 1
+        SetCoeff(P, 3);
+        break;
+    case 26:
+        // x^26 + x^6 + x^2 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 2);
+        SetCoeff(P, 6);
+        break;
+    case 27:
+        // x^27 + x^5 + x^2 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 2);
+        SetCoeff(P, 5);
+        break;
+    case 28:
+        // x^28 + x^3 + 1
+        SetCoeff(P, 3);
+        break;
+    case 29:
+        // x^29 + x^2 + 1
+        SetCoeff(P, 2);
+        break;
+    case 30:
+        // x^30 + x^23 + x^2 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 2);
+        SetCoeff(P, 23);
+        break;
+    case 31:
+        // x^31 + x^3 + 1
+        SetCoeff(P, 3);
+        break;
+    case 32:
+        // x^32 + x^22 + x^2 + x^1 + 1
+        SetCoeff(P, 1);
+        SetCoeff(P, 2);
+        SetCoeff(P, 22);
+        break;
+    case 40: //For soundness error 2^40
+        // x^40 + x^29 + x^27 + x^23 + 1
+        SetCoeff(P, 23);
+        SetCoeff(P, 27);
+        SetCoeff(P, 29);
+    case 60: //For soundness error 2^60
+        // x^60 + x^1 + 1
+        SetCoeff(P, 1);
+    case 80: //For soundness error 2^80
+        // x^80 + x^75 + x^27 + x^17 + 1
+        SetCoeff(P, 17);
+        SetCoeff(P, 27);
+        SetCoeff(P, 75);
+    default:
+        break;
+    }
+    return P;
 }

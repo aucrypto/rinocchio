@@ -28,22 +28,19 @@ SecretState setup(const QRP& qrp, long l, long k) {
         beta = random_ZZ_pE();
     } while (IsZero(beta));
 
-    //todo we could just as well scale by r_v, r_w and r_y in the precomputations, would save 300 ZZ_pE mults in 10 dimension case when verifying
     ss.inVofS.SetLength(qrp.circuit.numberOfInputWires);
     ss.inWofS.SetLength(qrp.circuit.numberOfInputWires);
-    ss.inYofS.SetLength(qrp.circuit.numberOfInputWires);
     for (int k = 0; k < qrp.circuit.numberOfInputWires; k++) {
-        ss.inVofS[k] = eval(qrp.V[k], s);
-        ss.inWofS[k] = eval(qrp.W[k], s);
-        ss.inYofS[k] = eval(qrp.Y[k], s);
+        ss.inVofS[k] = eval(qrp.V[k], s) * r_v;
+        ss.inWofS[k] = eval(qrp.W[k], s) * r_w;
     }
     ss.outVofS.SetLength(qrp.circuit.numberOfOutputWires);
     ss.outWofS.SetLength(qrp.circuit.numberOfOutputWires);
     ss.outYofS.SetLength(qrp.circuit.numberOfOutputWires);
     for (int k = 0; k < qrp.circuit.numberOfOutputWires; k++) {
-        ss.outVofS[k] = eval(qrp.V[k + qrp.outOffset], s);
-        ss.outWofS[k] = eval(qrp.W[k + qrp.outOffset], s);
-        ss.outYofS[k] = eval(qrp.Y[k + qrp.outOffset], s);
+        ss.outVofS[k] = eval(qrp.V[k + qrp.outOffset], s) * r_v;
+        ss.outWofS[k] = eval(qrp.W[k + qrp.outOffset], s) * r_w;
+        ss.outYofS[k] = eval(qrp.Y[k + qrp.outOffset], s) * r_y;
     }
 
     ss.s = s;
@@ -55,7 +52,7 @@ SecretState setup(const QRP& qrp, long l, long k) {
     ss.alpha_w = alpha_w;
     ss.alpha_y = alpha_y;
     ss.beta = beta;
-    ss.tOfS = eval(qrp.t, s);
+    ss.tOfS = eval(qrp.t, s) * r_y;
     ss.secretKey = gen_jl_encoding_key(l, k);
 
     return ss;
@@ -165,8 +162,6 @@ ostream& operator<<(ostream& s, const SecretState& secretState)  {
     s << "\n";
     s << secretState.inWofS;
     s << "\n";
-    s << secretState.inYofS;
-    s << "\n";
     s << secretState.outVofS;
     s << "\n";
     s << secretState.outWofS;
@@ -191,7 +186,6 @@ istream& operator>>(istream& s, SecretState& secretState) {
     s >> secretState.tOfS;
     s >> secretState.inVofS;
     s >> secretState.inWofS;
-    s >> secretState.inYofS;
     s >> secretState.outVofS;
     s >> secretState.outWofS;
     s >> secretState.outYofS;
